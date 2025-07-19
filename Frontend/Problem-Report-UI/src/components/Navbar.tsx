@@ -45,7 +45,7 @@ function Navbar() {
         <button className="px-4 py-2 text-[#236A75] border border-[#236A75] rounded-full hover:bg-green-50">
           Bejelentkezés
         </button>
-        <button className="px-4 py-2 bg-[#236A75] text-white rounded-full hover:bg-">
+        <button className="px-4 py-2 bg-[#236A75] hover:bg-[#0E3F47] text-white rounded-full hover:bg-">
           Regisztráció
         </button>
       </div>
