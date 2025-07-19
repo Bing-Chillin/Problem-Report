@@ -1,6 +1,6 @@
 import { PhotoIcon } from "@heroicons/react/24/solid";
 
-function Form() {
+function Form({ onCancel }: { onCancel?: () => void }) {
   return (
     <form className="mx-60 my-2">
       <div className="space-y-12">

@@ -13,7 +13,10 @@ function App() {
     imageType: string;
     subSystem: string;
     text: string;
+    status: string;
   }
+
+  //fetch reports from the API
 
   const [reports, setReports] = useState<Report[]>([]);
 
@@ -29,11 +32,17 @@ function App() {
       });
   }, []);
 
+  const deleteReport = (report: Report) => {
+    setReports(reports.filter((r) => r.id !== report.id));
+
+    axios.delete(`http://localhost:5255/Report/${report.id}`);
+  };
+
   return (
     <>
       <Navbar />
       {/* <Form /> */}
-      <ReportList reports={reports} />
+      <ReportList reports={reports} onDelete={deleteReport} />
     </>
   );
 }

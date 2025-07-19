@@ -43,7 +43,17 @@ public class ProblemReportContext : IdentityDbContext
                 ImagePath = "../Assets/UploadedImages/timeout.jpg",
                 ImageType = "jpg",
                 Date = DateTime.Now.AddDays(-2)
+            },
+
+            new Report
+            {
+                SubSystem = SubSystem.ProblemReport,
+                Text = "Nem tölti be azdsdsds oldalt.",
+                ImagePath = "../Assets/UploadedImages/timeout.jpg",
+                ImageType = "jpg",
+                Date = DateTime.Now.AddDays(-3)
             }
+
         );
     }
 }
