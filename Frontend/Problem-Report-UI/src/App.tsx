@@ -3,23 +3,37 @@ import "./App.css";
 import Navbar from "./components/Navbar";
 import axios, { AxiosError } from "axios";
 import Form from "./components/Form";
+import ReportList from "./components/ReportList";
 
 function App() {
-  const [response, setResonse] = useState("");
+  interface Report {
+    date: string;
+    id: string;
+    imagePath: string;
+    imageType: string;
+    subSystem: string;
+    text: string;
+  }
+
+  const [reports, setReports] = useState<Report[]>([]);
 
   useEffect(() => {
     axios
-      .get("http://localhost:5255/Report")
-      .then((res) => setResonse(res.data))
-      .catch((err) => {
-        console.log(err.message);
+      .get<Report[]>("http://localhost:5255/Report")
+      .then((res) => {
+        setReports(res.data);
+        console.log("Reports fetched successfully:", res.data);
+      })
+      .catch((error: AxiosError) => {
+        console.log("Error fetching reports:", error.message);
       });
   }, []);
 
   return (
     <>
       <Navbar />
-      <Form />
+      {/* <Form /> */}
+      <ReportList reports={reports} />
     </>
   );
 }
