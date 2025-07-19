@@ -1,7 +1,8 @@
 import "./App.css";
+import Navbar from "./components/Navbar";
 
 function App() {
-  return <h1 className="text-6xl text-cyan-500">Hello World!</h1>;
+  return <Navbar />;
 }
 
 export default App;
