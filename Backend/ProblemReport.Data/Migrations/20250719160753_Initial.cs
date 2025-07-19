@@ -15,12 +15,12 @@ namespace ProblemReport.Data.Migrations
                 name: "Reports",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SubSystem = table.Column<int>(type: "int", nullable: false),
-                    Text = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    ImageData = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
-                    ImageType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    SubSystem = table.Column<int>(type: "INTEGER", nullable: false),
+                    Text = table.Column<string>(type: "TEXT", maxLength: 250, nullable: false),
+                    ImagePath = table.Column<string>(type: "TEXT", maxLength: 250, nullable: true),
+                    ImageType = table.Column<string>(type: "TEXT", maxLength: 250, nullable: true),
+                    Date = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

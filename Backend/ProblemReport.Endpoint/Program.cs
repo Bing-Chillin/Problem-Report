@@ -26,9 +26,7 @@ public class Program
 
         builder.Services.AddDbContext<ProblemReportContext>(opt =>
             {
-                opt
-                .UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=ProblemReportDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True")
-                .UseLazyLoadingProxies();
+                opt.UseSqlite("Data Source=ProblemReport.db");
             });
 
         var app = builder.Build();
