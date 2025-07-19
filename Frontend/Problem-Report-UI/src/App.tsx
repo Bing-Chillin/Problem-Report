@@ -13,7 +13,10 @@ function App() {
     imageType: string;
     subSystem: string;
     text: string;
+    status: string;
   }
+
+  //fetch reports from the API
 
   const [reports, setReports] = useState<Report[]>([]);
 

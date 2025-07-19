@@ -5,6 +5,7 @@ interface Report {
   imageType: string;
   subSystem: string;
   text: string;
+  status: string;
 }
 
 function ReportList({ reports }: { reports: Report[] }) {
@@ -24,6 +25,7 @@ function ReportList({ reports }: { reports: Report[] }) {
           </div>
           <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
             <p className="text-sm/6 text-gray-900">{report.text}</p>
+            <p className="mt-1 text-xs/5 text-gray-500">{report.status}</p>
           </div>
         </li>
       ))}
