@@ -63,7 +63,6 @@ function Form() {
                   name="email"
                   type="email"
                   autoComplete="email"
-                  placeholder="example@email.com"
                   className="block max-w-md w-full rounded-md bg-white px-3 py-1.5 text-base text-[#236a75] outline-1 -outline-offset-1 outline-[#236a75] placeholder:text-[#236a75]/50 focus:outline-2 focus:-outline-offset-2 focus:outline-[#236a75] sm:text-sm/6"
                 />
               </div>
@@ -123,6 +122,20 @@ function Form() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="mt-6 flex items-center justify-end gap-x-6">
+        <button
+          type="button"
+          className="text-sm/6 font-semibold text-gray-900  hover:underline px-0.5 "
+        >
+          Mégse
+        </button>
+        <button
+          type="submit"
+          className="rounded-md bg-[#236a75] px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-[#0E3F47] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#236a75]"
+        >
+          Mentés
+        </button>
       </div>
     </form>
   );
