@@ -16,7 +16,7 @@ public class Program
             options.AddPolicy("CorsPolicy",
                 builder => builder.AllowAnyMethod()
                                   .AllowAnyHeader()
-                                  .WithOrigins("http://localhost:5255", "https://127.0..00.1:5255"));
+                                  .WithOrigins("http://localhost:5173", "https://127.0..00.1:5173"));
         });
 
         builder.Services.AddControllers();
