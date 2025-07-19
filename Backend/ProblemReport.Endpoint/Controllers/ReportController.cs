@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using ProblemReport.Data;
 using ProblemReport.Entities.Entity;
 
 namespace ProblemReport.Endpoint.Controllers;
@@ -7,17 +8,16 @@ namespace ProblemReport.Endpoint.Controllers;
 [Route("[controller]")]
 public class ReportController : ControllerBase
 {
-    [HttpGet]
-    public Report Get()
+    ProblemReportContext ctx;
+
+    public ReportController(ProblemReportContext ctx)
     {
-        var report = new Report
-        {
-            SubSystem = SubSystem.PlayGround,
-            Text = "A hinta eltört a játszótéren.",
-            ImageData = null,
-            ImageType = "jpeg",
-            Date = DateTime.Now
-        };
-        return report;
+        this.ctx = ctx;
+    }
+
+    [HttpGet]
+    public IEnumerable<Report> Get()
+    {
+         return ctx.Set<Report>().ToList();
     }
 }
