@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using ProblemReport.Data;
+using ProblemReport.Logic.Dto;
 
 namespace ProblemReport.Endpoint;
 
@@ -25,6 +26,7 @@ public class Program
         builder.Services.AddSwaggerGen();
 
         builder.Services.AddTransient(typeof(Repository<>));
+        builder.Services.AddTransient<DtoProvider>();
 
         builder.Services.AddDbContext<ProblemReportContext>(opt =>
             {
