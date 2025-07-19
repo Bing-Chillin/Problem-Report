@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProblemReport.Data;
 using ProblemReport.Logic;
@@ -29,6 +30,7 @@ public class Program
         builder.Services.AddTransient(typeof(Repository<>));
         builder.Services.AddTransient<DtoProvider>();
         builder.Services.AddTransient<ReportLogic>();
+
 
         builder.Services.AddDbContext<ProblemReportContext>(opt =>
             {

@@ -1,17 +1,13 @@
 using System;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ProblemReport.Entities.Entity;
 
 namespace ProblemReport.Data;
 
-public interface IProblemReportContext
+public class ProblemReportContext : IdentityDbContext
 {
-    DbSet<Report>? Reports { get; set; }
-}
-
-public class ProblemReportContext : DbContext, IProblemReportContext
-{
-    public DbSet<Report>? Reports { get; set; }
+    public DbSet<Report> Reports { get; set; }
 
     public ProblemReportContext(DbContextOptions<ProblemReportContext> options) : base(options)
     {
@@ -19,6 +15,8 @@ public class ProblemReportContext : DbContext, IProblemReportContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+        
         modelBuilder.Entity<Report>().HasData(
             new Report
             {
