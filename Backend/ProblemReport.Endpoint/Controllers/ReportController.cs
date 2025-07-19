@@ -12,7 +12,6 @@ public class ReportController : ControllerBase
 
     public ReportController(ProblemReportContext ctx)
     {
-<<<<<<< HEAD
         this.ctx = ctx;
     }
 
@@ -20,16 +19,5 @@ public class ReportController : ControllerBase
     public IEnumerable<Report> Get()
     {
          return ctx.Set<Report>().ToList();
-=======
-        var report = new Report
-        {
-            SubSystem = SubSystem.PlayGround,
-            Text = "A hinta eltört a játszótéren.",
-            ImageData = null, // vagy null, ha nincs kép
-            ImageType = "jpeg",
-            Date = DateTime.Now
-        };
-        return report;
->>>>>>> 9b3f37d59ad81c492c0a52436050f5d5951834e7
     }
 }

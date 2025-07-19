@@ -2,7 +2,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProblemReport.Data;
 
@@ -16,39 +15,32 @@ namespace ProblemReport.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.15")
-                .HasAnnotation("Proxies:ChangeTracking", false)
-                .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true)
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
-
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.15");
 
             modelBuilder.Entity("ProblemReport.Entities.Entity.Report", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ImagePath")
                         .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ImageType")
                         .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("SubSystem")
-                        .HasColumnType("int");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -57,8 +49,8 @@ namespace ProblemReport.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "0242b3bb-ed95-4c34-a2b8-5cfe9cc20ffe",
-                            Date = new DateTime(2025, 7, 19, 16, 16, 6, 844, DateTimeKind.Local).AddTicks(466),
+                            Id = "4e1bfd16-cb16-4c62-856d-2260e66a057a",
+                            Date = new DateTime(2025, 7, 19, 18, 15, 45, 63, DateTimeKind.Local).AddTicks(980),
                             ImagePath = "../Assets/UploadedImages/not_found.png",
                             ImageType = "png",
                             SubSystem = 2,
@@ -66,8 +58,8 @@ namespace ProblemReport.Data.Migrations
                         },
                         new
                         {
-                            Id = "2badc1fd-4ea7-42b2-bd14-9a8594641f65",
-                            Date = new DateTime(2025, 7, 18, 16, 16, 6, 844, DateTimeKind.Local).AddTicks(473),
+                            Id = "085f9ae6-f643-4df1-9338-4270b8960de1",
+                            Date = new DateTime(2025, 7, 18, 18, 15, 45, 63, DateTimeKind.Local).AddTicks(994),
                             ImagePath = "../Assets/UploadedImages/server_error.jpg",
                             ImageType = "jpg",
                             SubSystem = 3,
@@ -75,8 +67,8 @@ namespace ProblemReport.Data.Migrations
                         },
                         new
                         {
-                            Id = "342219dd-992f-41f0-acfc-088936a7059f",
-                            Date = new DateTime(2025, 7, 17, 16, 16, 6, 844, DateTimeKind.Local).AddTicks(492),
+                            Id = "ebf80d29-7870-4ecc-a46f-75219927dfaa",
+                            Date = new DateTime(2025, 7, 17, 18, 15, 45, 63, DateTimeKind.Local).AddTicks(1001),
                             ImagePath = "../Assets/UploadedImages/timeout.jpg",
                             ImageType = "jpg",
                             SubSystem = 4,

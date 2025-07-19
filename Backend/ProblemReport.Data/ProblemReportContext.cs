@@ -1,6 +1,5 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
 using ProblemReport.Entities.Entity;
 
 namespace ProblemReport.Data;
