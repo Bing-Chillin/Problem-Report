@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using ProblemReport.Data;
+using ProblemReport.Entities.Dto;
 using ProblemReport.Entities.Entity;
+using ProblemReport.Logic;
 
 namespace ProblemReport.Endpoint.Controllers;
 
@@ -8,28 +10,28 @@ namespace ProblemReport.Endpoint.Controllers;
 [Route("[controller]")]
 public class ReportController : ControllerBase
 {
-    Repository<Report> repo;
+    ReportLogic logic;
 
-    public ReportController(Repository<Report> repo)
+    public ReportController(ReportLogic logic)
     {
-        this.repo = repo;
+        this.logic = logic;
     }
 
     [HttpGet]
-    public IEnumerable<Report> Get()
+    public IEnumerable<ReportViewDto> Get()
     {
-        return repo.GetAll().ToList();
+        return logic.Read();
     }
 
     [HttpPost]
-    public async Task Post(Report report)
+    public async Task Post(ReportCreateUpdateDto report)
     {
-        await repo.CreateAsync(report);
+        await logic.Create(report);
     }
     
     [HttpDelete("{id}")]
     public async Task Delete(string id)
     {
-        await repo.DeleteByIdAsync(id);
+        await logic.Delete(id);
     }        
 }
