@@ -8,16 +8,28 @@ namespace ProblemReport.Endpoint.Controllers;
 [Route("[controller]")]
 public class ReportController : ControllerBase
 {
-    ProblemReportContext ctx;
+    Repository<Report> repo;
 
-    public ReportController(ProblemReportContext ctx)
+    public ReportController(Repository<Report> repo)
     {
-        this.ctx = ctx;
+        this.repo = repo;
     }
 
     [HttpGet]
     public IEnumerable<Report> Get()
     {
-         return ctx.Set<Report>().ToList();
+        return repo.GetAll().ToList();
     }
+
+    [HttpPost]
+    public async Task Post(Report report)
+    {
+        await repo.CreateAsync(report);
+    }
+    
+    [HttpDelete("{id}")]
+    public async Task Delete(string id)
+    {
+        await repo.DeleteByIdAsync(id);
+    }        
 }

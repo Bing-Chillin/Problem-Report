@@ -24,6 +24,8 @@ public class Program
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
+        builder.Services.AddTransient(typeof(Repository<>));
+
         builder.Services.AddDbContext<ProblemReportContext>(opt =>
             {
                 opt.UseSqlite("Data Source=ProblemReport.db");
