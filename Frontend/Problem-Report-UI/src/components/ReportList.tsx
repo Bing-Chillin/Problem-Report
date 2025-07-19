@@ -8,7 +8,13 @@ interface Report {
   status: string;
 }
 
-function ReportList({ reports }: { reports: Report[] }) {
+function ReportList({
+  reports,
+  onDelete,
+}: {
+  reports: Report[];
+  onDelete: (report: Report) => void;
+}) {
   return (
     <ul role="list" className="divide-y divide-gray-100 px-4">
       {reports.map((report) => (
@@ -26,6 +32,14 @@ function ReportList({ reports }: { reports: Report[] }) {
           <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
             <p className="text-sm/6 text-gray-900">{report.text}</p>
             <p className="mt-1 text-xs/5 text-gray-500">{report.status}</p>
+          </div>
+          <div>
+            <button
+              onClick={() => onDelete(report)}
+              className="text-red-500 hover:underline"
+            >
+              delete
+            </button>
           </div>
         </li>
       ))}
