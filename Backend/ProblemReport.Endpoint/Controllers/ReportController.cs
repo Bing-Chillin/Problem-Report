@@ -14,7 +14,7 @@ public class ReportController : ControllerBase
         {
             SubSystem = SubSystem.PlayGround,
             Text = "A hinta eltört a játszótéren.",
-            ImageData = null, // vagy null, ha nincs kép
+            ImageData = null,
             ImageType = "jpeg",
             Date = DateTime.Now
         };

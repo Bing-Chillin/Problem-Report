@@ -40,6 +40,14 @@ public class Program
 
         app.MapControllers();
 
+        app.UseCors(policy =>
+        {
+            policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .WithOrigins("http://localhost:5255", "https://127.0..00.1:5255");
+        });
+
         app.Run();
     }
 }
