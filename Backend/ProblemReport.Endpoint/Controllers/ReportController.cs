@@ -29,6 +29,13 @@ public class ReportController : ControllerBase
         await logic.Create(report);
     }
     
+    [HttpPut("{id}")]
+    public async Task Update(string id, [FromBody] ReportCreateUpdateDto dto)
+    {
+        await logic.Update(id, dto);
+    }
+
+
     [HttpDelete("{id}")]
     public async Task Delete(string id)
     {

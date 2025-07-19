@@ -10,4 +10,5 @@ public class ReportViewDto
     public string ImagePath { get; set; } = string.Empty;
     public string ImageType { get; set; } = string.Empty;
     public string Date { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty; // Open, Closed
 }

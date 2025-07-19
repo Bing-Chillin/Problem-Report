@@ -35,8 +35,18 @@ public class ReportLogic
         return repository.GetAll().Select(t => mapper.Map<ReportViewDto>(t));
     }
     
+    public async Task Update(string id, ReportCreateUpdateDto dto)
+        {
+            var reportToUpdate = repository.FindById(id);
+            if (reportToUpdate != null)
+            {
+                mapper.Map(dto, reportToUpdate);
+                await repository.UpdateAsync(reportToUpdate);
+            }
+        }
+    
     public async Task Delete(string id)
     {
-            await repository.DeleteByIdAsync(id);
+        await repository.DeleteByIdAsync(id);
     }
 }
