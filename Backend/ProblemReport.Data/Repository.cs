@@ -23,9 +23,9 @@ public class Repository<T> where T : class, IIdentity
         return ctx.Set<T>();
     }
 
-    public T FindById(string id)
+    public T? FindById(string id)
     {
-        return ctx.Set<T>().First(t => t.Id == id);
+        return ctx.Set<T>().FirstOrDefault(t => t.Id == id);
     }
 
     public async Task DeleteByIdAsync(string id)
