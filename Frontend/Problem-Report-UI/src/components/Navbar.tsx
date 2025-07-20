@@ -29,9 +29,6 @@ function Navbar() {
               Bejelentések
             </button>
           </div>
-          <div className="text-gray-700 hover:text-[#236A75] font-medium hover:underline">
-            Rólunk
-          </div>
         </div>
       </div>
 

@@ -65,7 +65,10 @@ function ReportList({
               </span>
 
               <button
-                onClick={() => onDelete(report)}
+                onClick={() => {
+                  onDelete(report);
+                  window.location.reload();
+                }}
                 className="text-red-500 hover:bg-red-500 hover:text-white rounded-full px-2 py-1 border border-red-500 text-xs"
               >
                 Törlés
@@ -76,7 +79,11 @@ function ReportList({
       </ul>
     );
   } else {
-    return <h1>hozzaferes megtagadva</h1>;
+    return (
+      <h1 className="text-3xl text-black py-3 ">
+        Sajnálom, nincs jogosultságod ehhez a művelethez :(
+      </h1>
+    );
   }
 }
 
