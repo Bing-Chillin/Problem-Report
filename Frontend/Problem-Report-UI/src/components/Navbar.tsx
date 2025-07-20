@@ -1,61 +1,58 @@
-import { useState } from "react";
-import Form from "./Form";
+import { useNavigate } from "react-router-dom";
 
 interface NavbarProps {
   onShowForm: () => void;
   onShowList: () => void;
-  onLoginClick: () => void;
-  onRegisterClick: () => void;
 }
 
-function Navbar(NavbarProps: NavbarProps) {
+function Navbar({ onShowForm, onShowList }: NavbarProps) {
+  const navigate = useNavigate();
+
   return (
-    <>
-      <nav className="flex items-center justify-between px-2 bg-white shadow">
-        {/* Logo */}
-        <div className="flex items-center">
-          <img src="logo-hu-HU.png" className="mr-2" />
-          {/* Navigation Buttons */}
-          <div className="flex space-x-6">
-            <div className="relative group">
-              <button
-                className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
-                onClick={NavbarProps.onShowForm}
-              >
-                Problémabejelentés
-              </button>
-            </div>
-            <div>
-              <button
-                className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
-                onClick={NavbarProps.onShowList}
-              >
-                Bejelentések
-              </button>
-            </div>
-            <div className="text-gray-700 hover:text-[#236A75] font-medium hover:underline">
-              Rólunk
-            </div>
+    <nav className="flex items-center justify-between px-2 bg-white shadow">
+      {/* Logo + Nav buttons */}
+      <div className="flex items-center">
+        <img src="logo-hu-HU.png" className="mr-2" />
+        <div className="flex space-x-6">
+          <div className="relative group">
+            <button
+              className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
+              onClick={onShowForm}
+            >
+              Problémabejelentés
+            </button>
+          </div>
+          <div>
+            <button
+              className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
+              onClick={onShowList}
+            >
+              Bejelentések
+            </button>
+          </div>
+          <div className="text-gray-700 hover:text-[#236A75] font-medium hover:underline">
+            Rólunk
           </div>
         </div>
-        {/* Auth Buttons */}
-        <div className="flex space-x-2">
-          <button
-            onClick={NavbarProps.onLoginClick}
-            className="px-4 py-2 text-[#236A75] border border-[#236A75] rounded-full hover:bg-green-50"
-          >
-            Bejelentkezés
-          </button>
+      </div>
 
-          <button
-            onClick={NavbarProps.onRegisterClick}
-            className="px-4 py-2 bg-[#236A75] hover:bg-[#0E3F47] text-white rounded-full"
-          >
-            Regisztráció
-          </button>
-        </div>
-      </nav>
-    </>
+      {/* Auth buttons */}
+      <div className="flex space-x-2">
+        <button
+          onClick={() => navigate("/login")}
+          className="px-4 py-2 text-[#236A75] border border-[#236A75] rounded-full hover:bg-green-50"
+        >
+          Bejelentkezés
+        </button>
+
+        <button
+          onClick={() => navigate("/register")}
+          className="px-4 py-2 bg-[#236A75] hover:bg-[#0E3F47] text-white rounded-full"
+        >
+          Regisztráció
+        </button>
+      </div>
+    </nav>
   );
 }
 

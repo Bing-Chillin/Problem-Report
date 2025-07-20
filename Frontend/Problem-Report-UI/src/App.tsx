@@ -7,33 +7,36 @@ import ReportList from "./components/ReportList";
 import { confirmDialog } from "./components/ConfirmDialog";
 import type { Report } from "./components/ReportList";
 import type { ReportFormData } from "./components/Form";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LoginPage from "./components/LoginPage.tsx";
+import RegisterPage from "./components/RegisterPage.tsx";
+import api from "./api/axios";
+import { useNavigate } from "react-router-dom";
 
 function App() {
-  //fetch reports from the API
-
   const [reports, setReports] = useState<Report[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showList, setShowList] = useState(false);
   const [modified, setModified] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await axios.get<Report[]>(
-          "http://localhost:5255/Report",
-        );
+        const response = await api.get<Report[]>("/Report");
         setReports(response.data);
         console.log("Fetched reports:", response.data);
       } catch (error) {
-        console.error(
-          "Failed to fetch reports:",
-          (error as AxiosError).message,
-        );
+        console.error("Failed to fetch reports:", error);
+        if ((error as any).response?.status === 401) {
+          // Unauthorized, redirect to login
+          navigate("/login");
+        }
       }
     };
     fetchReports();
     setModified(false);
-  }, [modified]);
+  }, [modified, navigate]);
 
   // Delete reports from the database
 
@@ -47,7 +50,7 @@ function App() {
     if (!confirmed) return;
 
     setReports((prev) => prev.filter((r) => r.id !== report.id));
-    await axios.delete(`http://localhost:5255/Report/${report.id}`);
+    await api.delete(`http://localhost:5255/Report/${report.id}`);
   };
 
   // Toggle report status
@@ -56,7 +59,7 @@ function App() {
     const updatedStatus = report.status === "lezárt" ? "nyitott" : "lezárt";
 
     try {
-      await axios.put(`http://localhost:5255/Report/${report.id}`, {
+      await api.put(`http://localhost:5255/Report/${report.id}`, {
         text: report.text,
         subSystem: report.subSystem,
         status: updatedStatus,
@@ -76,7 +79,7 @@ function App() {
 
   const createReport = async (reportData: ReportFormData) => {
     try {
-      await axios.post("http://localhost:5255/Report", {
+      await api.post("http://localhost:5255/Report", {
         text: reportData.text,
         subSystem: reportData.subSystem,
         status: "Open", // always start with open
@@ -92,50 +95,46 @@ function App() {
 
   const toggleShowForm = () => {
     setShowForm(true);
-    setShowList(false);
-  };
-
-  const toggleShowList = () => {
-    setShowList(true);
-    setShowForm(false);
-  };
-
-  const handleLoginClick = () => {
-    console.log("Login clicked");
-    // TODO: Show login modal or redirect
-  };
-
-  const handleRegisterClick = () => {
-    console.log("Register clicked");
-    // TODO: Show registration modal or redirect
   };
 
   return (
     <>
       <Navbar
-        onShowForm={toggleShowForm}
-        onShowList={toggleShowList}
-        onLoginClick={handleLoginClick}
-        onRegisterClick={handleRegisterClick}
+        onShowForm={() => {
+          setShowForm(true);
+          setModified(false);
+        }}
+        onShowList={() => {
+          setShowForm(false);
+          setModified(false);
+        }}
       />
-
-      {showForm && (
-        <Form
-          onCreate={(data) => {
-            createReport(data);
-            setShowForm(false);
-          }}
-          onCancel={() => setShowForm(false)}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              {showForm ? (
+                <Form
+                  onCreate={(data) => {
+                    createReport(data);
+                    setShowForm(false);
+                  }}
+                  onCancel={toggleShowForm}
+                />
+              ) : (
+                <ReportList
+                  reports={reports}
+                  onDelete={deleteReport}
+                  onToggleStatus={toggleStatus}
+                />
+              )}
+            </>
+          }
         />
-      )}
-
-      {showList && (
-        <ReportList
-          reports={reports}
-          onDelete={deleteReport}
-          onToggleStatus={toggleStatus}
-        />
-      )}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Routes>
     </>
   );
 }

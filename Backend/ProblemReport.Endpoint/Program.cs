@@ -111,13 +111,12 @@ public class Program
 
         app.UseHttpsRedirection();
 
+        app.UseCors("CorsPolicy");
+
         app.UseAuthentication();
         app.UseAuthorization();
 
-
         app.MapControllers();
-
-        app.UseCors("CorsPolicy");
 
         app.Run();
     }

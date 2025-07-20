@@ -49,5 +49,5 @@ public class ReportController : ControllerBase
     public async Task Delete(string id)
     {
         await logic.Delete(id);
-    }        
+    }
 }
