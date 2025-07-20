@@ -6,7 +6,7 @@ export interface Report {
   imageType: string;
   date: string;
   status: string;
-  sender: string;
+  name: string;
 }
 
 interface ReportListProps {
@@ -14,6 +14,13 @@ interface ReportListProps {
   onDelete: (report: Report) => void;
   onToggleStatus: (report: Report) => void;
 }
+
+const subsystemLabels: Record<string, string> = {
+  Cemetery: "Temető",
+  CityMaintenance: "Városüzemeltetés",
+  TaskManagement: "Feladatkezelés",
+  ProblemReport: "Hibabejelentő",
+};
 
 function ReportList({ reports, onDelete, onToggleStatus }: ReportListProps) {
   return (
@@ -25,8 +32,8 @@ function ReportList({ reports, onDelete, onToggleStatus }: ReportListProps) {
         >
           {/* Left - Subsystem, Sender, Date */}
           <div className="flex flex-col text-sm text-gray-700 w-1/4">
-            <span className="font-semibold">{report.subSystem}</span>
-            <span>{report.sender}</span>
+            <span className="font-semibold">{report.name}</span>
+            <span>{subsystemLabels[report.subSystem] ?? report.subSystem}</span>
             <span className="text-xs text-gray-500">{report.date}</span>
           </div>
 
@@ -37,15 +44,17 @@ function ReportList({ reports, onDelete, onToggleStatus }: ReportListProps) {
 
           {/* Right - Status & Delete */}
           <div className="flex flex-col items-end w-1/4 gap-y-2">
-            <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={report.status === "lezárt"}
-                onChange={() => onToggleStatus(report)}
-                className="w-4 h-4 text-green-600 border-gray-300 rounded"
-              />
+            <button
+              onClick={() => onToggleStatus(report)}
+              aria-label={report.status === "lezárt" ? "Lezárt" : "Nyitott"}
+              className={`w-5 h-5 rounded-full 
+      ${report.status === "lezárt" ? "bg-green-500" : "bg-red-500"} 
+      ring-2 ring-gray-300 hover:ring-gray-600 transition`}
+            />
+            <span className="text-xs text-gray-500 select-none">
               {report.status === "lezárt" ? "Lezárt" : "Nyitott"}
-            </label>
+            </span>
+
             <button
               onClick={() => onDelete(report)}
               className="text-red-500 hover:bg-red-500 hover:text-white rounded-full px-2 py-1 border border-red-500 text-xs"

@@ -79,18 +79,24 @@ function App() {
 
   const createReport = async (reportData: ReportFormData) => {
     try {
-      await api.post("http://localhost:5255/Report", {
-        text: reportData.text,
-        subSystem: reportData.subSystem,
-        status: "Open", // always start with open
-      });
+      await api.post(
+        "http://localhost:5255/Report",
+        {
+          text: reportData.text,
+          subSystem: reportData.subSystem,
+          status: "Open",
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      // Refresh list or fetch again if needed
+      setModified(true);
     } catch (error) {
       console.error("Failed to create report:", error);
     }
-
-    setModified(true);
   };
 
   const toggleShowForm = () => {

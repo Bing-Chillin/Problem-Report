@@ -1,66 +1,47 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
 import { PhotoIcon } from "@heroicons/react/24/solid";
 
-export interface ReportFormData {
+export type ReportFormData = {
   text: string;
-  imagePath: string;
-  imageType: string;
   subSystem: string;
-  sender: string;
-}
+  // file can be handled later when backend supports it
+};
 
-function Form({
+export default function Form({
   onCreate,
   onCancel,
 }: {
-  onCreate: (reportData: ReportFormData) => void;
-  onCancel?: () => void;
+  onCreate: (data: ReportFormData) => void;
+  onCancel: () => void;
 }) {
   const [text, setText] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [subSystem, setSubSystem] = useState("None");
-  const [sender, setSender] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!file) {
-      alert("Kérlek tölts fel képet.");
+    // Validate
+    if (!text || subSystem === "None") {
+      alert("Tölts ki minden mezőt!");
       return;
     }
 
-    const newReport = {
+    // Send the report data
+    onCreate({
       text,
-      imagePath: file.name,
-      imageType: file.type,
-      subSystem: subSystem,
-      sender: sender,
-    };
+      subSystem,
+    });
 
-    onCreate(newReport);
+    // Clear form
+    setText("");
+    setSubSystem("None");
+    setFile(null);
   };
 
   return (
-    <form className="mx-60 my-6" onSubmit={handleSubmit}>
-      <div className="mb-4">
-        <label
-          htmlFor="sender"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Jelentő neve
-        </label>
-        <input
-          type="text"
-          id="sender"
-          name="sender"
-          value={sender}
-          onChange={(e) => setSender(e.target.value)}
-          required
-          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 shadow-sm focus:border-[#236a75] focus:ring-[#236a75]"
-          placeholder="Add meg a neved"
-        />
-      </div>
-
+    <form onSubmit={handleSubmit} className="p-4 bg-white rounded shadow-md">
       <div className="mb-4">
         <label
           htmlFor="subsystem"
@@ -86,22 +67,24 @@ function Form({
         </select>
       </div>
 
-      <label
-        htmlFor="about"
-        className="block text-sm font-medium text-gray-700 mb-1"
-      >
-        Hibaleírás
-      </label>
-      <textarea
-        id="about"
-        name="about"
-        rows={3}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 shadow-sm focus:border-[#236a75] focus:ring-[#236a75]"
-        placeholder="Írd le a hibát..."
-        required
-      />
+      <div className="mb-4">
+        <label
+          htmlFor="about"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Hibaleírás
+        </label>
+        <textarea
+          id="about"
+          name="about"
+          rows={3}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 shadow-sm focus:border-[#236a75] focus:ring-[#236a75]"
+          placeholder="Írd le a hibát..."
+          required
+        />
+      </div>
 
       <div className="mt-4">
         <label
@@ -144,5 +127,3 @@ function Form({
     </form>
   );
 }
-
-export default Form;

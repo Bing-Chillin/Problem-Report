@@ -33,6 +33,14 @@ export default function RegisterPage() {
     }
   };
 
+  const signUpPlaceholders = [
+    "Vezetéknév",
+    "Keresztnév",
+    "Felhasználónév",
+    "Email",
+    "Jelszó",
+  ];
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
       <form
@@ -41,14 +49,14 @@ export default function RegisterPage() {
       >
         <h2 className="text-2xl font-bold mb-4">Regisztráció</h2>
         {["familyName", "givenName", "userName", "email", "password"].map(
-          (field) => (
+          (field, index) => (
             <input
               key={field}
               type={field === "password" ? "password" : "text"}
               name={field}
               value={(form as any)[field]}
               onChange={handleChange}
-              placeholder={field}
+              placeholder={signUpPlaceholders[index]}
               className="w-full mb-3 p-2 border rounded"
               required
             />

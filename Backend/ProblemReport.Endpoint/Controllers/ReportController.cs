@@ -30,7 +30,7 @@ public class ReportController : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task Post(ReportCreateUpdateDto report)
+    public async Task Post([FromBody] ReportCreateUpdateDto report)
     {
         var user = await userManager.GetUserAsync(User);
         if (user == null)
