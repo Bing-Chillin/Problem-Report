@@ -12,8 +12,9 @@ function App() {
   //fetch reports from the API
 
   const [reports, setReports] = useState<Report[]>([]);
-
   const [showForm, setShowForm] = useState(false);
+  const [showList, setShowList] = useState(false);
+  const [modified, setModified] = useState(false);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -31,7 +32,8 @@ function App() {
       }
     };
     fetchReports();
-  }, []);
+    setModified(false);
+  }, [modified]);
 
   // Delete reports from the database
 
@@ -51,7 +53,7 @@ function App() {
   // Toggle report status
 
   const toggleStatus = async (report: Report) => {
-    const updatedStatus = report.status === "kész" ? "nyitott" : "kész";
+    const updatedStatus = report.status === "lezárt" ? "nyitott" : "lezárt";
 
     try {
       await axios.put(`http://localhost:5255/Report/${report.id}`, {
@@ -84,11 +86,23 @@ function App() {
     } catch (error) {
       console.error("Failed to create report:", error);
     }
+
+    setModified(true);
+  };
+
+  const toggleShowForm = () => {
+    setShowForm(true);
+    setShowList(false);
+  };
+
+  const toggleShowList = () => {
+    setShowList(true);
+    setShowForm(false);
   };
 
   return (
     <>
-      <Navbar onShowForm={() => setShowForm(true)} />
+      <Navbar onShowForm={toggleShowForm} onShowList={toggleShowList} />
       {showForm && (
         <Form
           onCreate={(data) => {
@@ -99,11 +113,13 @@ function App() {
         />
       )}
 
-      <ReportList
-        reports={reports}
-        onDelete={deleteReport}
-        onToggleStatus={toggleStatus}
-      />
+      {showList && (
+        <ReportList
+          reports={reports}
+          onDelete={deleteReport}
+          onToggleStatus={toggleStatus}
+        />
+      )}
     </>
   );
 }
