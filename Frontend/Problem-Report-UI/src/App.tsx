@@ -15,6 +15,8 @@ function App() {
 
   const [showForm, setShowForm] = useState(false);
 
+  const [modified, setModified] = useState(false);
+
   useEffect(() => {
     const fetchReports = async () => {
       try {
@@ -31,7 +33,8 @@ function App() {
       }
     };
     fetchReports();
-  }, []);
+    setModified(false);
+  }, [modified]);
 
   // Delete reports from the database
 
@@ -84,6 +87,8 @@ function App() {
     } catch (error) {
       console.error("Failed to create report:", error);
     }
+
+    setModified(true);
   };
 
   return (

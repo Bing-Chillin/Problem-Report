@@ -34,17 +34,18 @@ function ReportList({ reports, onDelete, onToggleStatus }: ReportListProps) {
             </div>
           </div>
 
-          {/* Middle (text + status checkbox) */}
-          <div className="flex flex-col items-end">
+          <div>
             <p className="text-sm text-gray-900">{report.text}</p>
+          </div>
+          <div>
             <label className="mt-2 flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
               <input
                 type="checkbox"
-                checked={report.status === "kész"}
+                checked={report.status === "lezárt"}
                 onChange={() => onToggleStatus(report)}
                 className="w-4 h-4 text-green-600 border-gray-300 rounded"
               />
-              {report.status === "kész" ? "Kész" : "Nyitott"}
+              {report.status === "lezárt" ? "Lezárt" : "Nyitott"}
             </label>
           </div>
 
