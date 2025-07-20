@@ -4,45 +4,107 @@ import Navbar from "./components/Navbar";
 import axios, { AxiosError } from "axios";
 import Form from "./components/Form";
 import ReportList from "./components/ReportList";
+import { confirmDialog } from "./components/ConfirmDialog";
+import type { Report } from "./components/ReportList";
+import type { ReportFormData } from "./components/Form";
 
 function App() {
-  interface Report {
-    date: string;
-    id: string;
-    imagePath: string;
-    imageType: string;
-    subSystem: string;
-    text: string;
-    status: string;
-  }
-
   //fetch reports from the API
 
   const [reports, setReports] = useState<Report[]>([]);
 
+  const [showForm, setShowForm] = useState(false);
+
   useEffect(() => {
-    axios
-      .get<Report[]>("http://localhost:5255/Report")
-      .then((res) => {
-        setReports(res.data);
-        console.log("Reports fetched successfully:", res.data);
-      })
-      .catch((error: AxiosError) => {
-        console.log("Error fetching reports:", error.message);
-      });
+    const fetchReports = async () => {
+      try {
+        const response = await axios.get<Report[]>(
+          "http://localhost:5255/Report",
+        );
+        setReports(response.data);
+        console.log("Fetched reports:", response.data);
+      } catch (error) {
+        console.error(
+          "Failed to fetch reports:",
+          (error as AxiosError).message,
+        );
+      }
+    };
+    fetchReports();
   }, []);
 
-  const deleteReport = (report: Report) => {
-    setReports(reports.filter((r) => r.id !== report.id));
+  // Delete reports from the database
 
-    axios.delete(`http://localhost:5255/Report/${report.id}`);
+  const deleteReport = async (report: Report) => {
+    const confirmed = await confirmDialog({
+      title: "Bejelentés törlése",
+      message:
+        "Biztosan törölni szeretnéd ezt a bejelentést? Ez a művelet nem visszavonható.",
+    });
+
+    if (!confirmed) return;
+
+    setReports((prev) => prev.filter((r) => r.id !== report.id));
+    await axios.delete(`http://localhost:5255/Report/${report.id}`);
+  };
+
+  // Toggle report status
+
+  const toggleStatus = async (report: Report) => {
+    const updatedStatus = report.status === "kész" ? "nyitott" : "kész";
+
+    try {
+      await axios.put(`http://localhost:5255/Report/${report.id}`, {
+        ...report,
+        status: updatedStatus,
+      });
+
+      setReports((prev) =>
+        prev.map((r) =>
+          r.id === report.id ? { ...r, status: updatedStatus } : r,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
+
+  // Create new report
+
+  const createReport = async (reportData: ReportFormData) => {
+    const newReport = {
+      ...reportData,
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5255/Report",
+        newReport,
+      );
+      setReports((prev) => [...prev, response.data]);
+    } catch (error) {
+      console.error("Failed to create report:", error);
+    }
   };
 
   return (
     <>
-      <Navbar />
-      {/* <Form /> */}
-      <ReportList reports={reports} onDelete={deleteReport} />
+      <Navbar onShowForm={() => setShowForm(true)} />
+      {showForm && (
+        <Form
+          onCreate={(data) => {
+            createReport(data);
+            setShowForm(false);
+          }}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+
+      <ReportList
+        reports={reports}
+        onDelete={deleteReport}
+        onToggleStatus={toggleStatus}
+      />
     </>
   );
 }
