@@ -1,6 +1,10 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using ProblemReport.Entities.Dto.Auth;
 
 namespace ProblemReport.Endpoint.Controllers;
@@ -51,5 +55,59 @@ public class AuthController : ControllerBase
         }
 
         return Ok();
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(UserLoginDto dto)
+    {
+        var user = await userManager.FindByNameAsync(dto.UserName);
+        if (user != null)
+        {
+            var result = await userManager.CheckPasswordAsync(user, dto.Password);
+            if (result)
+            {
+                var claim = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName!),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                };
+
+                foreach (var role in await userManager.GetRolesAsync(user))
+                {
+                    claim.Add(new Claim(ClaimTypes.Role, role));
+                }
+
+                int accessTokenExpiryInMinutes = 24 * 60;
+                var accessToken = GenerateAccessToken(claim, accessTokenExpiryInMinutes);
+
+                return Ok(new LoginResultDto()
+                {
+                    Token = new JwtSecurityTokenHandler().WriteToken(accessToken),
+                    Expiration = DateTime.Now.AddMinutes(accessTokenExpiryInMinutes),
+                });
+            }
+            else
+            {
+                return BadRequest("Nem jó a jelszó");
+            }
+        }
+        else
+        {
+            return BadRequest("Nincs ilyen user");
+        }
+    }
+
+    private JwtSecurityToken GenerateAccessToken(IEnumerable<Claim>? claims, int expiryInMinutes)
+    {
+        var signinKey = new SymmetricSecurityKey(
+                  Encoding.UTF8.GetBytes("NagyonhosszútitkosítókulcsNagyonhosszútitkosítókulcsNagyonhosszútitkosítókulcsNagyonhosszútitkosítókulcsNagyonhosszútitkosítókulcsNagyonhosszútitkosítókulcs"));
+
+        return new JwtSecurityToken(
+              issuer: "problemreport.com",
+              audience: "problemreport.com",
+              claims: claims?.ToArray(),
+              expires: DateTime.Now.AddMinutes(expiryInMinutes),
+              signingCredentials: new SigningCredentials(signinKey, SecurityAlgorithms.HmacSha256)
+            );
     }
 }
