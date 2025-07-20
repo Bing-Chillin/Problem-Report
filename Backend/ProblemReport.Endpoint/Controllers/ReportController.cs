@@ -33,6 +33,10 @@ public class ReportController : ControllerBase
     public async Task Post(ReportCreateUpdateDto report)
     {
         var user = await userManager.GetUserAsync(User);
+        if (user == null)
+        {
+            throw new UnauthorizedAccessException("User is not authenticated.");
+        }
         await logic.Create(report, user.Id);
     }
 

@@ -21,14 +21,9 @@ public class ReportLogic
     {
         var report = mapper.Map<Report>(dto);
         if (report is null)
-        {
             throw new ArgumentNullException(nameof(dto), "Report is not given.");
-        }
-        else
-        {
-            report.CreatorId = creatorId;
-            await repository.CreateAsync(report);
-        }
+        report.CreatorId = creatorId;
+        await repository.CreateAsync(report);
     }
 
     public IEnumerable<ReportViewDto> Read()
