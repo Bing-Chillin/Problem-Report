@@ -31,6 +31,20 @@ public class Program
         builder.Services.AddTransient<DtoProvider>();
         builder.Services.AddTransient<ReportLogic>();
 
+        builder.Services.AddIdentity<IdentityUser, IdentityRole>(
+            options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequiredLength = 3;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+            }
+        )
+                .AddRoles<IdentityRole>()
+                .AddEntityFrameworkStores<ProblemReportContext>()
+                .AddDefaultTokenProviders();
+
 
         builder.Services.AddDbContext<ProblemReportContext>(opt =>
             {
