@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ProblemReport.Data;
-using ProblemReport.Entities.Dto;
-using ProblemReport.Entities.Entity;
+using ProblemReport.Entities.Dto.Report;
 using ProblemReport.Logic;
 
 namespace ProblemReport.Endpoint.Controllers;

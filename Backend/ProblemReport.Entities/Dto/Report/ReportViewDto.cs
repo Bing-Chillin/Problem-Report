@@ -1,6 +1,6 @@
 using System;
 
-namespace ProblemReport.Entities.Dto;
+namespace ProblemReport.Entities.Dto.Report;
 
 public class ReportViewDto
 {

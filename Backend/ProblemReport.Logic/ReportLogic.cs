@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using ProblemReport.Data;
-using ProblemReport.Entities.Dto;
+using ProblemReport.Entities.Dto.Report;
 using ProblemReport.Entities.Entity;
 using ProblemReport.Logic.Dto;
 
