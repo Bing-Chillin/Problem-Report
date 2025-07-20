@@ -31,14 +31,10 @@ function Form({
       text,
       imagePath: file.name,
       imageType: file.type,
-      subSystem: "default", // or add a dropdown later
+      subSystem: subSystem,
     };
 
     onCreate(newReport);
-
-    // Optionally reset form
-    setText("");
-    setFile(null);
   };
 
   return (
@@ -58,7 +54,7 @@ function Form({
           required
           className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 shadow-sm focus:border-[#236a75] focus:ring-[#236a75]"
         >
-          <option value="" disabled>
+          <option value="None" disabled>
             Válassz alrendszert
           </option>
           <option value="Cemetery">Temető</option>

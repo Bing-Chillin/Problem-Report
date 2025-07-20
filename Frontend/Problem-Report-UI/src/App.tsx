@@ -55,7 +55,8 @@ function App() {
 
     try {
       await axios.put(`http://localhost:5255/Report/${report.id}`, {
-        ...report,
+        text: report.text,
+        subSystem: report.subSystem,
         status: updatedStatus,
       });
 
@@ -72,16 +73,14 @@ function App() {
   // Create new report
 
   const createReport = async (reportData: ReportFormData) => {
-    const newReport = {
-      ...reportData,
-    };
-
     try {
-      const response = await axios.post(
-        "http://localhost:5255/Report",
-        newReport,
-      );
-      setReports((prev) => [...prev, response.data]);
+      await axios.post("http://localhost:5255/Report", {
+        text: reportData.text,
+        subSystem: reportData.subSystem,
+        status: "Open", // always start with open
+      });
+
+      // Refresh list or fetch again if needed
     } catch (error) {
       console.error("Failed to create report:", error);
     }
