@@ -100,9 +100,25 @@ function App() {
     setShowForm(false);
   };
 
+  const handleLoginClick = () => {
+    console.log("Login clicked");
+    // TODO: Show login modal or redirect
+  };
+
+  const handleRegisterClick = () => {
+    console.log("Register clicked");
+    // TODO: Show registration modal or redirect
+  };
+
   return (
     <>
-      <Navbar onShowForm={toggleShowForm} onShowList={toggleShowList} />
+      <Navbar
+        onShowForm={toggleShowForm}
+        onShowList={toggleShowList}
+        onLoginClick={handleLoginClick}
+        onRegisterClick={handleRegisterClick}
+      />
+
       {showForm && (
         <Form
           onCreate={(data) => {
