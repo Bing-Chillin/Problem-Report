@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProblemReport.Data;
 
@@ -10,9 +11,11 @@ using ProblemReport.Data;
 namespace ProblemReport.Data.Migrations
 {
     [DbContext(typeof(ProblemReportContext))]
-    partial class ProblemReportContextModelSnapshot : ModelSnapshot
+    [Migration("20250720110926_FullName")]
+    partial class FullName
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.15");
@@ -224,11 +227,6 @@ namespace ProblemReport.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("CreatorId")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
@@ -259,9 +257,8 @@ namespace ProblemReport.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "527689e8-c578-4dbe-aa4e-4c056c894695",
-                            CreatorId = "",
-                            Date = new DateTime(2025, 7, 20, 13, 19, 52, 844, DateTimeKind.Local).AddTicks(4374),
+                            Id = "c71de6d5-4afb-4f82-a456-d1565aa0b21d",
+                            Date = new DateTime(2025, 7, 20, 13, 9, 25, 108, DateTimeKind.Local).AddTicks(6529),
                             ImagePath = "../Assets/UploadedImages/not_found.png",
                             ImageType = "png",
                             Status = "Open",
@@ -270,9 +267,8 @@ namespace ProblemReport.Data.Migrations
                         },
                         new
                         {
-                            Id = "39cc39df-5a5d-4a46-b480-fa3309ed9e2a",
-                            CreatorId = "",
-                            Date = new DateTime(2025, 7, 19, 13, 19, 52, 844, DateTimeKind.Local).AddTicks(4381),
+                            Id = "7ef8d3a4-a3e7-4cb0-bc6e-020bda6b0b31",
+                            Date = new DateTime(2025, 7, 19, 13, 9, 25, 108, DateTimeKind.Local).AddTicks(6536),
                             ImagePath = "../Assets/UploadedImages/server_error.jpg",
                             ImageType = "jpg",
                             Status = "Open",
@@ -281,9 +277,8 @@ namespace ProblemReport.Data.Migrations
                         },
                         new
                         {
-                            Id = "ad48c0b0-dc1f-4e06-bd71-2b70fd4525c3",
-                            CreatorId = "",
-                            Date = new DateTime(2025, 7, 18, 13, 19, 52, 844, DateTimeKind.Local).AddTicks(4391),
+                            Id = "a3b5ee5e-591e-47c4-8885-68718bf0a47e",
+                            Date = new DateTime(2025, 7, 18, 13, 9, 25, 108, DateTimeKind.Local).AddTicks(6543),
                             ImagePath = "../Assets/UploadedImages/timeout.jpg",
                             ImageType = "jpg",
                             Status = "Open",
@@ -292,9 +287,8 @@ namespace ProblemReport.Data.Migrations
                         },
                         new
                         {
-                            Id = "687c8e15-d231-4b82-97ac-9bb43f53c15a",
-                            CreatorId = "",
-                            Date = new DateTime(2025, 7, 17, 13, 19, 52, 844, DateTimeKind.Local).AddTicks(4397),
+                            Id = "97776f23-c921-4026-a963-60cf28c787de",
+                            Date = new DateTime(2025, 7, 17, 13, 9, 25, 108, DateTimeKind.Local).AddTicks(6548),
                             ImagePath = "../Assets/UploadedImages/timeout.jpg",
                             ImageType = "jpg",
                             Status = "Open",

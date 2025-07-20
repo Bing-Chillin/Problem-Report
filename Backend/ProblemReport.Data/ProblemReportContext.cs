@@ -1,6 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using ProblemReport.Data.Helper;
 using ProblemReport.Entities.Entity;
 
 namespace ProblemReport.Data;
@@ -8,6 +9,7 @@ namespace ProblemReport.Data;
 public class ProblemReportContext : IdentityDbContext
 {
     public DbSet<Report> Reports { get; set; }
+    public DbSet<AppUser> AppUsers { get; set; }
 
     public ProblemReportContext(DbContextOptions<ProblemReportContext> options) : base(options)
     {

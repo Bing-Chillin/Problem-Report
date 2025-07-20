@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using ProblemReport.Data.Helper;
 using ProblemReport.Entities.Dto.Auth;
 
 namespace ProblemReport.Endpoint.Controllers;
@@ -13,10 +14,10 @@ namespace ProblemReport.Endpoint.Controllers;
 [Route("[controller]")]
 public class AuthController : ControllerBase
 {
-    private UserManager<IdentityUser> userManager;
+    private UserManager<AppUser> userManager;
     private RoleManager<IdentityRole> roleManager;
 
-    public AuthController(UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+    public AuthController(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
     {
         this.userManager = userManager;
         this.roleManager = roleManager;
@@ -25,11 +26,13 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(UserCreateDto dto)
     {
-        var user = new IdentityUser
+        var user = new AppUser
         {
             UserName = dto.UserName,
             Email = dto.Email,
             EmailConfirmed = true,
+            FamilyName = dto.FamilyName,
+            GivenName = dto.GivenName
         };
         var result = await userManager.CreateAsync(user, dto.Password);
 

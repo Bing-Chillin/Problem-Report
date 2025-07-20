@@ -27,4 +27,6 @@ public class Report : IIdentity
     public string? ImageType { get; set; } = string.Empty;
     public DateTime Date { get; set; } = DateTime.Now;
     public string Status { get; set; } = "Open"; //Open, Closed
+    [StringLength(250)]
+    public string CreatorId { get; set; } = string.Empty;
 }
