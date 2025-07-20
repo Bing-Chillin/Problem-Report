@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ProblemReport.Data;
+using ProblemReport.Data.Helper;
 using ProblemReport.Logic;
 using ProblemReport.Logic.Dto;
 
@@ -61,7 +62,7 @@ public class Program
         builder.Services.AddTransient<DtoProvider>();
         builder.Services.AddTransient<ReportLogic>();
 
-        builder.Services.AddIdentity<IdentityUser, IdentityRole>(
+        builder.Services.AddIdentity<AppUser, IdentityRole>(
             options =>
             {
                 options.Password.RequireDigit = false;

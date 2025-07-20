@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ProblemReport.Data;
+using ProblemReport.Data.Helper;
 using ProblemReport.Entities.Dto.Report;
 using ProblemReport.Logic;
 
@@ -11,10 +13,12 @@ namespace ProblemReport.Endpoint.Controllers;
 public class ReportController : ControllerBase
 {
     ReportLogic logic;
+    UserManager<AppUser> userManager;
 
-    public ReportController(ReportLogic logic)
+    public ReportController(ReportLogic logic, UserManager<AppUser> userManager)
     {
         this.logic = logic;
+        this.userManager = userManager;
     }
 
     [HttpGet]
@@ -28,7 +32,8 @@ public class ReportController : ControllerBase
     [Authorize]
     public async Task Post(ReportCreateUpdateDto report)
     {
-        await logic.Create(report);
+        var user = await userManager.GetUserAsync(User);
+        await logic.Create(report, user.Id);
     }
 
     [HttpPut("{id}")]

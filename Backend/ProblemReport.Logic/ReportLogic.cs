@@ -17,7 +17,7 @@ public class ReportLogic
         this.mapper = provider.Mapper;
     }
 
-    public async Task Create(ReportCreateUpdateDto dto)
+    public async Task Create(ReportCreateUpdateDto dto, string creatorId)
     {
         var report = mapper.Map<Report>(dto);
         if (report is null)
@@ -26,6 +26,7 @@ public class ReportLogic
         }
         else
         {
+            report.CreatorId = creatorId;
             await repository.CreateAsync(report);
         }
     }
