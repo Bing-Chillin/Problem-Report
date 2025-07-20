@@ -1,11 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-interface NavbarProps {
-  onShowForm: () => void;
-  onShowList: () => void;
-}
-
-function Navbar({ onShowForm, onShowList }: NavbarProps) {
+function Navbar() {
   const navigate = useNavigate();
 
   return (
@@ -17,7 +12,7 @@ function Navbar({ onShowForm, onShowList }: NavbarProps) {
           <div className="relative group">
             <button
               className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
-              onClick={onShowForm}
+              onClick={() => navigate("/form")}
             >
               Problémabejelentés
             </button>
@@ -25,7 +20,7 @@ function Navbar({ onShowForm, onShowList }: NavbarProps) {
           <div>
             <button
               className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
-              onClick={onShowList}
+              onClick={() => navigate("/reports")}
             >
               Bejelentések
             </button>

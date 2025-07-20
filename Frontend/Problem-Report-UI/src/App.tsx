@@ -105,37 +105,56 @@ function App() {
 
   return (
     <>
-      <Navbar
-        onShowForm={() => {
-          setShowForm(true);
-          setModified(false);
-        }}
-        onShowList={() => {
-          setShowForm(false);
-          setModified(false);
-        }}
-      />
+      <Navbar />
       <Routes>
         <Route
           path="/"
           element={
             <>
-              {showForm ? (
-                <Form
-                  onCreate={(data) => {
-                    createReport(data);
-                    setShowForm(false);
-                  }}
-                  onCancel={toggleShowForm}
-                />
-              ) : (
-                <ReportList
-                  reports={reports}
-                  onDelete={deleteReport}
-                  onToggleStatus={toggleStatus}
-                />
-              )}
+              {/* {showForm ? ( */}
+              {/*   <Form */}
+              {/*     onCreate={(data) => { */}
+              {/*       createReport(data); */}
+              {/*       setShowForm(false); */}
+              {/*     }} */}
+              {/*     onCancel={toggleShowForm} */}
+              {/*   /> */}
+              {/* ) : ( */}
+              {/*   <ReportList */}
+              {/*     reports={reports} */}
+              {/*     onDelete={deleteReport} */}
+              {/*     onToggleStatus={toggleStatus} */}
+              {/*   /> */}
+              {/* )} */}
+
+              {/* <Form */}
+              {/*   onCreate={(data) => { */}
+              {/*     createReport(data); */}
+              {/*   }} */}
+              {/*   onCancel={toggleShowForm} */}
+              {/* /> */}
+
+              <h1>Frontpage</h1>
             </>
+          }
+        />
+        <Route
+          path="/form"
+          element={
+            <Form
+              onCreate={(data) => createReport(data)}
+              onCancel={toggleShowForm}
+            />
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <ReportList
+              reports={reports}
+              onDelete={deleteReport}
+              onToggleStatus={toggleStatus}
+            />
           }
         />
         <Route path="/login" element={<LoginPage />} />
