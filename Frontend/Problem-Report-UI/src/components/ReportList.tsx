@@ -1,11 +1,12 @@
 export interface Report {
-  date: string;
   id: string;
-  imagePath: string;
-  imageType: string;
   subSystem: string;
   text: string;
+  imagePath: string;
+  imageType: string;
+  date: string;
   status: string;
+  sender: string;
 }
 
 interface ReportListProps {
@@ -20,25 +21,23 @@ function ReportList({ reports, onDelete, onToggleStatus }: ReportListProps) {
       {reports.map((report) => (
         <li
           key={report.id}
-          className="flex justify-between gap-x-6 py-5 items-center"
+          className="flex justify-between gap-x-6 py-5 items-center border-b"
         >
-          {/* Left side (imagePath + date) */}
-          <div className="flex min-w-0 gap-x-4">
-            <div className="min-w-0 flex-auto">
-              <p className="text-sm font-semibold text-gray-900">
-                {report.imagePath}
-              </p>
-              <p className="mt-1 truncate text-xs text-gray-500">
-                {report.date}
-              </p>
-            </div>
+          {/* Left - Subsystem, Sender, Date */}
+          <div className="flex flex-col text-sm text-gray-700 w-1/4">
+            <span className="font-semibold">{report.subSystem}</span>
+            <span>{report.sender}</span>
+            <span className="text-xs text-gray-500">{report.date}</span>
           </div>
 
-          <div>
-            <p className="text-sm text-gray-900">{report.text}</p>
+          {/* Middle - Text */}
+          <div className="text-sm text-gray-900 truncate w-2/4">
+            {report.text}
           </div>
-          <div>
-            <label className="mt-2 flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
+
+          {/* Right - Status & Delete */}
+          <div className="flex flex-col items-end w-1/4 gap-y-2">
+            <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer select-none">
               <input
                 type="checkbox"
                 checked={report.status === "lezárt"}
@@ -47,13 +46,9 @@ function ReportList({ reports, onDelete, onToggleStatus }: ReportListProps) {
               />
               {report.status === "lezárt" ? "Lezárt" : "Nyitott"}
             </label>
-          </div>
-
-          {/* Right (delete button) */}
-          <div>
             <button
               onClick={() => onDelete(report)}
-              className="text-red-500 hover:bg-red-500 hover:text-white rounded-full px-2 py-2 border border-red-500"
+              className="text-red-500 hover:bg-red-500 hover:text-white rounded-full px-2 py-1 border border-red-500 text-xs"
             >
               Törlés
             </button>

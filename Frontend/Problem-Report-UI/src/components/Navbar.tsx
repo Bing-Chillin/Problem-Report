@@ -3,6 +3,7 @@ import Form from "./Form";
 
 interface NavbarProps {
   onShowForm: () => void;
+  onShowList: () => void;
 }
 
 function Navbar(NavbarProps: NavbarProps) {
@@ -19,16 +20,20 @@ function Navbar(NavbarProps: NavbarProps) {
                 className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
                 onClick={NavbarProps.onShowForm}
               >
-                Szolgáltatások
+                Problémabejelentés
               </button>
             </div>
-
-            <a
-              href="#"
-              className="text-gray-700 hover:text-[#236A75] font-medium hover:underline"
-            >
+            <div>
+              <button
+                className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
+                onClick={NavbarProps.onShowList}
+              >
+                Bejelentések
+              </button>
+            </div>
+            <div className="text-gray-700 hover:text-[#236A75] font-medium hover:underline">
               Rólunk
-            </a>
+            </div>
           </div>
         </div>
         {/* Auth Buttons */}

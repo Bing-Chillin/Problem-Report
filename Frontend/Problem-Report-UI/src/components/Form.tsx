@@ -6,6 +6,7 @@ export interface ReportFormData {
   imagePath: string;
   imageType: string;
   subSystem: string;
+  sender: string;
 }
 
 function Form({
@@ -18,6 +19,7 @@ function Form({
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [subSystem, setSubSystem] = useState("None");
+  const [sender, setSender] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +34,7 @@ function Form({
       imagePath: file.name,
       imageType: file.type,
       subSystem: subSystem,
+      sender: sender,
     };
 
     onCreate(newReport);
@@ -39,6 +42,25 @@ function Form({
 
   return (
     <form className="mx-60 my-6" onSubmit={handleSubmit}>
+      <div className="mb-4">
+        <label
+          htmlFor="sender"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Jelentő neve
+        </label>
+        <input
+          type="text"
+          id="sender"
+          name="sender"
+          value={sender}
+          onChange={(e) => setSender(e.target.value)}
+          required
+          className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 shadow-sm focus:border-[#236a75] focus:ring-[#236a75]"
+          placeholder="Add meg a neved"
+        />
+      </div>
+
       <div className="mb-4">
         <label
           htmlFor="subsystem"
