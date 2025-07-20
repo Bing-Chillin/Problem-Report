@@ -19,6 +19,7 @@ export default function LoginPage() {
       const data = await response.json();
       localStorage.setItem("token", data.token);
       navigate("/");
+      window.location.reload();
     } else {
       alert("Login failed");
     }

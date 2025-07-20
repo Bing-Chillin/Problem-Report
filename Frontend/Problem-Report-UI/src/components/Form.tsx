@@ -10,14 +10,13 @@ export type ReportFormData = {
 
 export default function Form({
   onCreate,
-  onCancel,
 }: {
   onCreate: (data: ReportFormData) => void;
-  onCancel: () => void;
 }) {
   const [text, setText] = useState("");
   const [subSystem, setSubSystem] = useState("None");
   const [file, setFile] = useState<File | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -29,19 +28,31 @@ export default function Form({
     }
 
     // Send the report data
-    onCreate({
-      text,
-      subSystem,
-    });
+    onCreate({ text, subSystem });
+
+    // Show success message
+    setSuccessMessage("Sikeres mentés!");
 
     // Clear form
     setText("");
     setSubSystem("None");
     setFile(null);
+
+    // Hide success message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-white rounded shadow-md">
+    <form onSubmit={handleSubmit} className="p-6 bg-white rounded shadow-md">
+      {/* Success message */}
+      {successMessage && (
+        <div className="mb-4 text-green-600 font-medium bg-green-50 border border-green-300 rounded p-2">
+          {successMessage}
+        </div>
+      )}
+
       <div className="mb-4">
         <label
           htmlFor="subsystem"
@@ -77,7 +88,7 @@ export default function Form({
         <textarea
           id="about"
           name="about"
-          rows={3}
+          rows={6}
           value={text}
           onChange={(e) => setText(e.target.value)}
           className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-base text-gray-900 shadow-sm focus:border-[#236a75] focus:ring-[#236a75]"
@@ -110,13 +121,6 @@ export default function Form({
       </div>
 
       <div className="mt-6 flex items-center justify-end gap-x-6">
-        <button
-          type="button"
-          className="text-sm font-semibold text-gray-900 hover:underline"
-          onClick={onCancel}
-        >
-          Mégse
-        </button>
         <button
           type="submit"
           className="rounded-md bg-[#236a75] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0E3F47]"

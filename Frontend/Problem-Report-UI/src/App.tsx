@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import Navbar from "./components/Navbar";
-import axios, { AxiosError } from "axios";
 import Form from "./components/Form";
 import ReportList from "./components/ReportList";
 import { confirmDialog } from "./components/ConfirmDialog";
@@ -12,12 +11,12 @@ import LoginPage from "./components/LoginPage.tsx";
 import RegisterPage from "./components/RegisterPage.tsx";
 import api from "./api/axios";
 import { useNavigate } from "react-router-dom";
+import Frontpage from "./components/Frontpage.tsx";
 
 function App() {
   const [reports, setReports] = useState<Report[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [showList, setShowList] = useState(false);
   const [modified, setModified] = useState(false);
+  const [hasAccess, setHasAccess] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,9 +27,8 @@ function App() {
         console.log("Fetched reports:", response.data);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
-        if ((error as any).response?.status === 401) {
-          // Unauthorized, redirect to login
-          navigate("/login");
+        if ((error as any).response?.status === 403) {
+          setHasAccess(false);
         }
       }
     };
@@ -99,53 +97,14 @@ function App() {
     }
   };
 
-  const toggleShowForm = () => {
-    setShowForm(true);
-  };
-
   return (
     <>
       <Navbar />
       <Routes>
-        <Route
-          path="/"
-          element={
-            <>
-              {/* {showForm ? ( */}
-              {/*   <Form */}
-              {/*     onCreate={(data) => { */}
-              {/*       createReport(data); */}
-              {/*       setShowForm(false); */}
-              {/*     }} */}
-              {/*     onCancel={toggleShowForm} */}
-              {/*   /> */}
-              {/* ) : ( */}
-              {/*   <ReportList */}
-              {/*     reports={reports} */}
-              {/*     onDelete={deleteReport} */}
-              {/*     onToggleStatus={toggleStatus} */}
-              {/*   /> */}
-              {/* )} */}
-
-              {/* <Form */}
-              {/*   onCreate={(data) => { */}
-              {/*     createReport(data); */}
-              {/*   }} */}
-              {/*   onCancel={toggleShowForm} */}
-              {/* /> */}
-
-              <h1>Frontpage</h1>
-            </>
-          }
-        />
+        <Route path="/" element={<Frontpage />} />
         <Route
           path="/form"
-          element={
-            <Form
-              onCreate={(data) => createReport(data)}
-              onCancel={toggleShowForm}
-            />
-          }
+          element={<Form onCreate={(data) => createReport(data)} />}
         />
         <Route
           path="/reports"
@@ -154,6 +113,7 @@ function App() {
               reports={reports}
               onDelete={deleteReport}
               onToggleStatus={toggleStatus}
+              access={hasAccess}
             />
           }
         />
