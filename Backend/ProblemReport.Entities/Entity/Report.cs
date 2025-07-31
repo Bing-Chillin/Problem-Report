@@ -22,7 +22,7 @@ public class Report : IIdentity
     [StringLength(250)]
     public string Text { get; set; } = string.Empty;
     [StringLength(250)]
-    public string? ImagePath { get; set; } = "../Assets/UploadedImages/";
+    public string? ImagePath { get; set; } = string.Empty;
     [StringLength(250)]
     public string? ImageType { get; set; } = string.Empty;
     public DateTime Date { get; set; } = DateTime.Now;
