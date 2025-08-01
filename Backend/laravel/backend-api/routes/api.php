@@ -2,9 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\AuthController;
+use Illuminate\Http\Request;
 
-Route::apiResource('reports', ReportController::class);
+//for http requests
+Route::middleware('auth:api')->apiResource('reports', ReportController::class);
 
-Route::get('/ping', function () {
-    return 'pong';
-});
+//for authentication
+Route::post('register', [AuthController::class, 'register'])->name('register');
+Route::post('login', [AuthController::class, 'login'])->name('login');

@@ -21,6 +21,7 @@ class ReportController extends Controller
      *     path="/api/reports",
      *     summary="Get a list of all reports",
      *     tags={"Reports"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="List of reports returned successfully",
@@ -40,6 +41,7 @@ class ReportController extends Controller
      * @OA\Post(
      *     path="/api/reports",
      *     summary="Create new report",
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -78,6 +80,7 @@ class ReportController extends Controller
      * @OA\Put(
      *     path="/api/reports/{id}",
      *     summary="Update the specified report",
+     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -112,6 +115,7 @@ class ReportController extends Controller
      * @OA\Delete(
      *     path="/api/reports/{id}",
      *     summary="Delete the specified report",
+     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
