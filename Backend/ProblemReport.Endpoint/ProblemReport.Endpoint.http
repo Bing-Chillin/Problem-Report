@@ -1,6 +1,0 @@
-@ProblemReport.Endpoint_HostAddress = http://localhost:5255
-
-GET {{ProblemReport.Endpoint_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

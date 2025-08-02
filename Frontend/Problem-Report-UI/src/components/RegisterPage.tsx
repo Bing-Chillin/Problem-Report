@@ -19,10 +19,14 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:5255/Auth/register", {
+    const response = await fetch("http://localhost:8000/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        name: `${form.givenName} ${form.familyName}`,
+        email: form.email,
+        password: form.password,
+      }),
     });
 
     if (response.ok) {

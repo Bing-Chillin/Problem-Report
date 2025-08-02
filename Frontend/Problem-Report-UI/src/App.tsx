@@ -22,9 +22,23 @@ function App() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await api.get<Report[]>("/Report");
-        setReports(response.data);
-        console.log("Fetched reports:", response.data);
+        const response = await api.get("/reports");
+
+        // Map Laravel response to camelCase
+        const mappedReports: Report[] = response.data.map((r: any) => ({
+          id: r.id,
+          subsystem: r.subsystem,
+          text: r.text,
+          imagePath: r.image_path,
+          imageType: r.image_type,
+          date: r.date,
+          status: r.status,
+          creatorId: r.creator_id,
+          name: r.creator_name ?? "Ismeretlen felhasználó",
+        }));
+
+        setReports(mappedReports);
+        console.log("Fetched reports:", mappedReports);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
         if ((error as any).response?.status === 403) {
@@ -48,7 +62,7 @@ function App() {
     if (!confirmed) return;
 
     setReports((prev) => prev.filter((r) => r.id !== report.id));
-    await api.delete(`http://localhost:5255/Report/${report.id}`);
+    await api.delete(`/reports/${report.id}`);
   };
 
   // Toggle report status
@@ -57,9 +71,9 @@ function App() {
     const updatedStatus = report.status === "lezárt" ? "nyitott" : "lezárt";
 
     try {
-      await api.put(`http://localhost:5255/Report/${report.id}`, {
+      await api.put(`/reports/${report.id}`, {
         text: report.text,
-        subSystem: report.subSystem,
+        subsystem: report.subsystem,
         status: updatedStatus,
       });
 
@@ -78,11 +92,11 @@ function App() {
   const createReport = async (reportData: ReportFormData) => {
     try {
       await api.post(
-        "http://localhost:5255/Report",
+        "/reports",
         {
           text: reportData.text,
-          subSystem: reportData.subSystem,
-          status: "Open",
+          subsystem: reportData.subsystem,
+          status: "nyitott",
         },
         {
           headers: {
