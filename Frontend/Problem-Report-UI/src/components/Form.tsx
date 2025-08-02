@@ -4,7 +4,7 @@ import { PhotoIcon } from "@heroicons/react/24/solid";
 
 export type ReportFormData = {
   text: string;
-  subSystem: string;
+  subsystem: string;
   // file can be handled later when backend supports it
 };
 
@@ -14,7 +14,7 @@ export default function Form({
   onCreate: (data: ReportFormData) => void;
 }) {
   const [text, setText] = useState("");
-  const [subSystem, setSubSystem] = useState("None");
+  const [subsystem, setSubsystem] = useState("None");
   const [file, setFile] = useState<File | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -22,20 +22,20 @@ export default function Form({
     e.preventDefault();
 
     // Validate
-    if (!text || subSystem === "None") {
+    if (!text || subsystem === "None") {
       alert("Tölts ki minden mezőt!");
       return;
     }
 
     // Send the report data
-    onCreate({ text, subSystem });
+    onCreate({ text, subsystem });
 
     // Show success message
     setSuccessMessage("Sikeres mentés!");
 
     // Clear form
     setText("");
-    setSubSystem("None");
+    setSubsystem("None");
     setFile(null);
 
     // Hide success message after 3 seconds
@@ -63,8 +63,8 @@ export default function Form({
         <select
           id="subsystem"
           name="subsystem"
-          value={subSystem}
-          onChange={(e) => setSubSystem(e.target.value)}
+          value={subsystem}
+          onChange={(e) => setSubsystem(e.target.value)}
           required
           className="block w-full rounded-md border border-gray-300 px-3 py-2 text-base text-gray-900 shadow-sm focus:border-[#236a75] focus:ring-[#236a75]"
         >
