@@ -8,7 +8,7 @@ use Laravel\Passport\Passport;
 class AuthServiceProvider extends ServiceProvider
 {
     protected $policies = [
-        
+        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
     ];
 
     public function boot()
@@ -16,3 +16,4 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
     }
 }
+
