@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginUserRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -87,8 +88,8 @@ class AuthController extends Controller
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
- *             required={"email","password"},
- *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+ *             required={"username","password"},
+ *             @OA\Property(property="username", type="string", format="email", example="johndoe"),
  *             @OA\Property(property="password", type="string", format="password", example="password")
  *         )
  *     ),
@@ -100,33 +101,26 @@ class AuthController extends Controller
  *             @OA\Property(property="user", type="object")
  *         )
  *     ),
- *     @OA\Response(response=401, description="Unauthorized")
+ *     @OA\Response(response=401, description="Invalid username or password")
  * )
  */
 
-    public function login(Request $request)
+    public function login(LoginUserRequest $request)
     {
         $credentials = [
-            'email'    => $request->email,
+            'username'    => $request->username,
             'password' => $request->password
         ];
-  
-        if (Auth::attempt($credentials)) 
-        {
-            $user = User::where('email', $request->email)->first();
-            $token = $user->createToken('passportToken')->accessToken; //TODO: Auth::user() is not available here, so we fetch the user again.
 
-            //$token = Auth::user()->createToken('passportToken')->accessToken;
-
-            return response()->json([
-                'user' => Auth::user(), 
-                'token' => $token
-            ], 200);
+        if (!Auth::attempt($credentials)) {
+            return response()->json(['error' => 'Invalid username or password'], 401);
         }
-  
+
+        $token = $request->user()->createToken('API Token')->accessToken;
+
         return response()->json([
-            'error' => 'Unauthorised'
-        ], 401);
-  
+            'user' => Auth::user(),
+            'token' => $token
+        ], 200);
     }
 }
