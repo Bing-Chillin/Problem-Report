@@ -53,6 +53,8 @@ class ReportController extends Controller
      *         @OA\Response(response=201, description="Created")
      *   )
      */
+
+    /** @var \App\Models\User $user */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -62,7 +64,7 @@ class ReportController extends Controller
         ]);
 
         $validated['date'] = now();
-        $validated['creator_id'] = 1; //auth()->id(); TODO: implement authentication
+        $validated['creator_id'] = auth()->id();
 
         $report = Report::create($validated);
         return response()->json($report, 201);

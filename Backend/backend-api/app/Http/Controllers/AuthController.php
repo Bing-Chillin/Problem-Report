@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Http\Requests\RegisterUserRequest;
 
 /**
  * @OA\SecurityScheme(
@@ -31,10 +32,13 @@ class AuthController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name", "email", "password"},
-     *             @OA\Property(property="name", type="string", example="John Doe"),
+     *             required={"first_name", "last_name", "username", "email", "password", "password_confirmation"},
+     *             @OA\Property(property="first_name", type="string", example="John"),
+     *             @OA\Property(property="last_name", type="string", example="Doe"),
+     *             @OA\Property(property="username", type="string", example="johndoe123"),
      *             @OA\Property(property="email", type="string", format="email", example="johndoe@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="secret123")
+     *             @OA\Property(property="password", type="string", format="password", example="secret123"),
+     *            @OA\Property(property="password_confirmation", type="string", format="password", example="secret123")
      *         )
      *     ),
      *     @OA\Response(
@@ -43,7 +47,8 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="user", type="object",
      *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="name", type="string", example="John Doe"),
+     *                 @OA\Property(property="last_name", type="string", example="Doe"),
+ *                     @OA\Property(property="username", type="string", example="johndoe123"),
      *                 @OA\Property(property="email", type="string", example="johndoe@example.com"),
      *             ),
      *             @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLC...")
@@ -53,10 +58,12 @@ class AuthController extends Controller
      * )
      */
 
-    public function register(Request $request)
+    public function register(RegisterUserRequest  $request)
     {
         $formData = [
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
+            'username' => $request->username,
             'email' => $request->email,
             'password' => $request->password,
         ];

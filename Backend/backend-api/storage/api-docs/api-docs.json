@@ -19,14 +19,25 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name",
+                                    "first_name",
+                                    "last_name",
+                                    "username",
                                     "email",
-                                    "password"
+                                    "password",
+                                    "password_confirmation"
                                 ],
                                 "properties": {
-                                    "name": {
+                                    "first_name": {
                                         "type": "string",
-                                        "example": "John Doe"
+                                        "example": "John"
+                                    },
+                                    "last_name": {
+                                        "type": "string",
+                                        "example": "Doe"
+                                    },
+                                    "username": {
+                                        "type": "string",
+                                        "example": "johndoe123"
                                     },
                                     "email": {
                                         "type": "string",
@@ -34,6 +45,11 @@
                                         "example": "johndoe@example.com"
                                     },
                                     "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret123"
+                                    },
+                                    "password_confirmation": {
                                         "type": "string",
                                         "format": "password",
                                         "example": "secret123"
@@ -57,9 +73,13 @@
                                                     "type": "integer",
                                                     "example": 1
                                                 },
-                                                "name": {
+                                                "last_name": {
                                                     "type": "string",
-                                                    "example": "John Doe"
+                                                    "example": "Doe"
+                                                },
+                                                "username": {
+                                                    "type": "string",
+                                                    "example": "johndoe123"
                                                 },
                                                 "email": {
                                                     "type": "string",
