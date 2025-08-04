@@ -23,6 +23,7 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'role_id',
     ];
 
     /**
@@ -51,5 +52,30 @@ class User extends Authenticatable
     public function reports()
     {
         return $this->hasMany(Report::class, 'creator_id');
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    private function hasRole(string $roleName): bool
+    {
+        return $this->role?->name === $roleName;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    public function isDeveloper(): bool
+    {
+        return $this->hasRole('developer');
+    }
+
+    public function isUser(): bool
+    {
+        return $this->hasRole('user');
     }
 }
