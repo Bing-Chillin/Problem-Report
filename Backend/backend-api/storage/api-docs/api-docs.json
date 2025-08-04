@@ -166,7 +166,7 @@
                 "tags": [
                     "Reports"
                 ],
-                "summary": "Get a list of all reports",
+                "summary": "Get a list of all reports  (Admin/Developer only)",
                 "operationId": "42398321972bc3074eef76718e0fd9dc",
                 "responses": {
                     "200": {
@@ -220,6 +220,53 @@
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin/Developer role required"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "summary": "Create new report  (All authenticated users)",
+                "operationId": "318de4ef8123b483320dc9dbb45b6a43",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "subsystem": {
+                                        "type": "string"
+                                    },
+                                    "text": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "422": {
+                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -231,7 +278,7 @@
         },
         "/api/reports/{id}": {
             "put": {
-                "summary": "Update the specified report",
+                "summary": "Update the specified report (Admin/Developer only)",
                 "operationId": "53aec2092fb1277fa3d06d65d59fa307",
                 "parameters": [
                     {
@@ -278,6 +325,12 @@
                     },
                     "404": {
                         "description": "Report not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin/Developer role required"
                     }
                 },
                 "security": [
@@ -287,7 +340,7 @@
                 ]
             },
             "delete": {
-                "summary": "Delete the specified report",
+                "summary": "Delete the specified report (Admin only)",
                 "operationId": "a577f2ba73f34e6564524e2163d9bcdf",
                 "parameters": [
                     {
@@ -313,6 +366,12 @@
                     },
                     "404": {
                         "description": "Report not found"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin role required"
                     }
                 },
                 "security": [
@@ -400,6 +459,34 @@
                     "creator_id": {
                         "type": "integer",
                         "example": 3
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-07-31T12:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-07-31T12:05:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "Role": {
+                "title": "Role",
+                "description": "Role model",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "admin"
                     },
                     "created_at": {
                         "type": "string",

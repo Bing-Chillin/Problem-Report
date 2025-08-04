@@ -20,7 +20,7 @@ class ReportController extends Controller
     /**
      * @OA\Get(
      *     path="/api/reports",
-     *     summary="Get a list of all reports",
+     *     summary="Get a list of all reports  (Admin/Developer only)",
      *     tags={"Reports"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
@@ -40,7 +40,9 @@ class ReportController extends Controller
      *                 @OA\Property(property="name", type="string", example="Kovács János")
      *             )
      *         )
-     *     )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=403, description="Forbidden - Admin/Developer role required")
      * )
      */
     public function index()
@@ -53,7 +55,7 @@ class ReportController extends Controller
     /**
      * @OA\Post(
      *     path="/api/reports",
-     *     summary="Create new report",
+     *     summary="Create new report  (All authenticated users)",
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
@@ -63,11 +65,11 @@ class ReportController extends Controller
      *             @OA\Property(property="status", type="string")
      *         )
      *         ),
-     *         @OA\Response(response=201, description="Created")
+     *     @OA\Response(response=201, description="Created"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
      *   )
      */
-
-    /** @var \App\Models\User $user */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -94,7 +96,7 @@ class ReportController extends Controller
     /**
      * @OA\Put(
      *     path="/api/reports/{id}",
-     *     summary="Update the specified report",
+     *     summary="Update the specified report (Admin/Developer only)",
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
@@ -116,7 +118,9 @@ class ReportController extends Controller
      *         description="Report updated successfully",
      *         @OA\JsonContent(ref="#/components/schemas/Report")
      *     ),
-     *     @OA\Response(response=404, description="Report not found")
+     *     @OA\Response(response=404, description="Report not found"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=403, description="Forbidden - Admin/Developer role required")
      * )
      */
     public function update(Request $request, string $id)
@@ -129,7 +133,7 @@ class ReportController extends Controller
     /**
      * @OA\Delete(
      *     path="/api/reports/{id}",
-     *     summary="Delete the specified report",
+     *     summary="Delete the specified report (Admin only)",
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
@@ -143,7 +147,9 @@ class ReportController extends Controller
      *         description="Number of deleted records",
      *         @OA\JsonContent(type="integer")
      *     ),
-     *     @OA\Response(response=404, description="Report not found")
+     *     @OA\Response(response=404, description="Report not found"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=403, description="Forbidden - Admin role required")
      * )
      */
     public function destroy(string $id)
