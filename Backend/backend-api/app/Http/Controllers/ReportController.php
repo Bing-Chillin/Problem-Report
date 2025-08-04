@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use App\Http\Resources\ReportResource;
+use App\Http\Requests\StoreReportRequest;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * @OA\Info(
@@ -53,33 +55,110 @@ class ReportController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/reports/{id}/image",
+     *     summary="Get report image (Admin/Developer only)",
+     *     tags={"Reports"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID of report",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Image file",
+     *         @OA\MediaType(
+     *             mediaType="image/jpeg"
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Image not found"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
+    public function showImage(string $id)
+    {
+        $report = Report::findOrFail($id);
+
+        if (!$report->image_path) {
+            return response()->json(['message' => 'Image not found'], 404);
+        }
+
+        $filePath = storage_path('app/private/reports/' . $report->image_path); //full path
+        
+        if (!file_exists($filePath)) {
+            return response()->json(['message' => 'Image file not found'], 404);
+        }
+
+        $mimeType = mime_content_type($filePath);
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Cache-Control' => 'public, max-age=3600', // Cache for 1 hour
+        ]);
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/reports",
      *     summary="Create new report  (All authenticated users)",
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(
-     *             @OA\Property(property="subsystem", type="string"),
-     *             @OA\Property(property="text", type="string"),
-     *             @OA\Property(property="status", type="string")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(property="subsystem", type="string", example="ProblemReport"),
+     *                 @OA\Property(property="text", type="string", example="Something is broken"),
+     *                 @OA\Property(property="status", type="string", enum={"open", "in_progress", "closed"}, example="open"),
+     *                 @OA\Property(
+     *                     property="image", 
+     *                     type="string", 
+     *                     format="binary", 
+     *                     description="Image file (only JPG and PNG allowed, max 2MB)"
+     *                 )
+     *             )
      *         )
-     *         ),
-     *     @OA\Response(response=201, description="Created"),
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Report created successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/Report")
+     *     ),
      *     @OA\Response(response=401, description="Unauthorized"),
-     *     @OA\Response(response=422, description="Validation error")
-     *   )
+     *     @OA\Response(
+     *         response=422, 
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid."),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
      */
-    public function store(Request $request)
+    public function store(StoreReportRequest $request)
     {
-        $validated = $request->validate([
-            'subsystem' => 'required|string',
-            'text' => 'required|string',
-            'status' => 'required|string',
-        ]);
-
+        $validated = $request->validated();
+        
         $validated['date'] = now();
         $validated['creator_id'] = $request->user()->id;
+
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $extension = $image->getClientOriginalExtension();
+            $filename = time() . '_' . uniqid() . '.' . $extension;
+
+            $image->storeAs('reports', $filename); // Store in storage/app/private/reports
+
+            $validated['image_path'] = $filename; //eg "1723456789_64f2a1b3c4d5e.jpg"
+            $validated['image_type'] = $extension;
+        }
+
+        // Remove image from validated data as it's not a database column
+        unset($validated['image']);
 
         $report = Report::create($validated);
         return response()->json($report, 201);

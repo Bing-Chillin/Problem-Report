@@ -11,6 +11,7 @@ Route::middleware('auth:api')->group(function () {
     // Admin and Developer only
     Route::middleware('role:admin,developer')->group(function () {
         Route::get('/reports', [ReportController::class, 'index']);
+        Route::get('/reports/{id}/image', [ReportController::class, 'showImage']);
         Route::put('/reports/{id}', [ReportController::class, 'update']);
     });
     
