@@ -88,8 +88,8 @@ class AuthController extends Controller
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
- *             required={"username","password"},
- *             @OA\Property(property="username", type="string", format="email", example="johndoe"),
+ *             required={"email","password"},
+ *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
  *             @OA\Property(property="password", type="string", format="password", example="password")
  *         )
  *     ),
@@ -101,19 +101,19 @@ class AuthController extends Controller
  *             @OA\Property(property="user", type="object")
  *         )
  *     ),
- *     @OA\Response(response=401, description="Invalid username or password")
+ *     @OA\Response(response=401, description="Unauthorized")
  * )
  */
 
     public function login(LoginUserRequest $request)
     {
         $credentials = [
-            'username'    => $request->username,
+            'email'    => $request->email,
             'password' => $request->password
         ];
 
         if (!Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Invalid username or password'], 401);
+            return response()->json(['error' => 'Unauthorised'], 401);
         }
 
         $token = $request->user()->createToken('API Token')->accessToken;
