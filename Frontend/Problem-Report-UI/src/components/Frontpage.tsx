@@ -6,7 +6,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate } from "react-router-dom";
 
-
 function Frontpage() {
   const navigate = useNavigate();
 
@@ -24,7 +23,6 @@ function Frontpage() {
           <p className="text-white md:text-xl max-w-2xl mx-auto">
             Egyszerű és egységes mód a MindiGIS alrendszerek hibabejelentésére.
           </p>
-          {/* <FontAwesomeIcon icon="fa-solid fa-lightbulb" /> */}
         </div>
       </div>
 

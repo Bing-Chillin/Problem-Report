@@ -30,12 +30,16 @@ export default function LoginPage() {
           const errorData = JSON.parse(responseText);
           alert(`Login failed: ${errorData.error || "Unknown error"}`);
         } catch {
-          alert(`Login failed: ${response.status} - ${responseText.substring(0, 100)}`);
+          alert(
+            `Login failed: ${response.status} - ${responseText.substring(0, 100)}`,
+          );
         }
       }
     } catch (error) {
       console.error("Network error:", error);
-      alert("Network error: Could not connect to server. Is the Laravel server running?");
+      alert(
+        "Network error: Could not connect to server. Is the Laravel server running?",
+      );
     }
   };
 
@@ -72,3 +76,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

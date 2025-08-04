@@ -12,12 +12,10 @@ function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    // Remove token from localStorage
     localStorage.removeItem("token");
     setIsLoggedIn(false);
-    // Redirect to home page
     navigate("/");
-    // Reload to reset any cached data
+
     window.location.reload();
   };
 
@@ -55,7 +53,7 @@ function Navbar() {
         {isLoggedIn ? (
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white cursor-pointer rounded-full"
+            className="px-4 py-2 bg-red-800 hover:bg-red-900 text-white cursor-pointer rounded-full"
           >
             Kijelentkezés
           </button>

@@ -27,18 +27,14 @@ export default function Form({
       return;
     }
 
-    // Send the report data
     onCreate({ text, subsystem });
 
-    // Show success message
     setSuccessMessage("Sikeres mentés!");
 
-    // Clear form
     setText("");
     setSubsystem("None");
     setFile(null);
 
-    // Hide success message after 3 seconds
     setTimeout(() => {
       setSuccessMessage("");
     }, 3000);
@@ -46,7 +42,6 @@ export default function Form({
 
   return (
     <form onSubmit={handleSubmit} className="p-6 bg-white rounded shadow-md">
-      {/* Success message */}
       {successMessage && (
         <div className="mb-4 text-green-600 font-medium bg-green-50 border border-green-300 rounded p-2">
           {successMessage}
