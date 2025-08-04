@@ -24,8 +24,9 @@ function App() {
       try {
         const response = await api.get("/reports");
 
-        // Map Laravel response to camelCase
-        const mappedReports: Report[] = response.data.map((r: any) => ({
+        const reportsData = response.data.data || response.data;
+        
+        const mappedReports: Report[] = reportsData.map((r: any) => ({
           id: r.id,
           subsystem: r.subsystem,
           text: r.text,
@@ -34,7 +35,7 @@ function App() {
           date: r.date,
           status: r.status,
           creatorId: r.creator_id,
-          name: r.creator_name ?? "Ismeretlen felhasználó",
+          name: r.name ?? "Ismeretlen felhasználó",
         }));
 
         setReports(mappedReports);
