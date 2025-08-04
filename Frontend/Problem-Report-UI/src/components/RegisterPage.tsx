@@ -19,21 +19,38 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:8000/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: `${form.givenName} ${form.familyName}`,
-        email: form.email,
-        password: form.password,
-      }),
-    });
+    try {
+      const response = await fetch("http://localhost:8000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          first_name: form.givenName,
+          last_name: form.familyName,
+          username: form.userName,
+          email: form.email,
+          password: form.password,
+          password_confirmation: form.password,
+        }),
+      });
 
-    if (response.ok) {
-      alert("Sikeres regisztráció!");
-      navigate("/login");
-    } else {
-      alert("Hiba a regisztráció során");
+      const responseText = await response.text();
+      console.log("Response status:", response.status);
+      console.log("Response text:", responseText);
+
+      if (response.ok) {
+        alert("Sikeres regisztráció!");
+        navigate("/login");
+      } else {
+        try {
+          const errorData = JSON.parse(responseText);
+          alert(`Regisztráció sikertelen: ${errorData.message}`);
+        } catch {
+          alert(`Regisztráció sikertelen: ${response.status} - ${responseText.substring(0, 100)}`);
+        }
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      alert("Hálózati hiba");
     }
   };
 

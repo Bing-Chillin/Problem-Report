@@ -88,8 +88,8 @@ class AuthController extends Controller
  *     @OA\RequestBody(
  *         required=true,
  *         @OA\JsonContent(
- *             required={"email","password"},
- *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
+ *             required={"login","password"},
+ *             @OA\Property(property="login", type="string", example="user@example.com or username"),
  *             @OA\Property(property="password", type="string", format="password", example="password")
  *         )
  *     ),
@@ -107,9 +107,15 @@ class AuthController extends Controller
 
     public function login(LoginUserRequest $request)
     {
+        $login = $request->login;
+        $password = $request->password;
+        
+        // Determine if login is email or username
+        $loginField = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        
         $credentials = [
-            'email'    => $request->email,
-            'password' => $request->password
+            $loginField => $login,
+            'password' => $password
         ];
 
         if (!Auth::attempt($credentials)) {

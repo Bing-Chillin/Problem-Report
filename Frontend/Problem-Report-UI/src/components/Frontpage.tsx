@@ -6,22 +6,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate } from "react-router-dom";
 
-// function Frontpage() {
-//   return (
-//     <>
-//       <div
-//         id="frontpage"
-//         className="h-screen w-full bg-cover bg-center"
-//         style={{ backgroundImage: 'url("/phone.jpg")' }}
-//       >
-//         <h1 className="text-7xl text-white font-bold pt-3.5">TITLE</h1>
-//       </div>
-//     </>
-//   );
-// }
-//
-// export default Frontpage;
-//
 
 function Frontpage() {
   const navigate = useNavigate();
