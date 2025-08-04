@@ -110,7 +110,6 @@ class AuthController extends Controller
         $login = $request->login;
         $password = $request->password;
         
-        // Determine if login is email or username
         $loginField = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         
         $credentials = [

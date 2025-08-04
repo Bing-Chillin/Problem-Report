@@ -117,14 +117,13 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "username",
+                                    "login",
                                     "password"
                                 ],
                                 "properties": {
-                                    "username": {
+                                    "login": {
                                         "type": "string",
-                                        "format": "email",
-                                        "example": "johndoe"
+                                        "example": "user@example.com or username"
                                     },
                                     "password": {
                                         "type": "string",
@@ -157,7 +156,7 @@
                         }
                     },
                     "401": {
-                        "description": "Invalid username or password"
+                        "description": "Unauthorized"
                     }
                 }
             }
@@ -177,7 +176,46 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/Report"
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "subsystem": {
+                                                "type": "string",
+                                                "example": "ProblemReort"
+                                            },
+                                            "text": {
+                                                "type": "string",
+                                                "example": "Something's broken."
+                                            },
+                                            "image_path": {
+                                                "type": "string",
+                                                "example": "/images/problem.jpg"
+                                            },
+                                            "image_type": {
+                                                "type": "string",
+                                                "example": "jpg"
+                                            },
+                                            "date": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2025-08-01T10:30:00Z"
+                                            },
+                                            "status": {
+                                                "type": "string",
+                                                "example": "open"
+                                            },
+                                            "email": {
+                                                "type": "string",
+                                                "example": "janos@example.com"
+                                            },
+                                            "name": {
+                                                "type": "string",
+                                                "example": "Kovács János"
+                                            }
+                                        },
+                                        "type": "object"
                                     }
                                 }
                             }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User; // Add this import
 
 /**
  * @OA\Schema(
@@ -37,4 +38,9 @@ class Report extends Model
     protected $casts = [
         'date' => 'datetime',
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id');
+    }
 }

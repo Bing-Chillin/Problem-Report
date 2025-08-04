@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use Illuminate\Http\Request;
+use App\Http\Resources\ReportResource;
 
 /**
  * @OA\Info(
@@ -27,14 +28,26 @@ class ReportController extends Controller
      *         description="List of reports returned successfully",
      *         @OA\JsonContent(
      *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Report")
+     *             @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="subsystem", type="string", example="ProblemReort"),
+     *                 @OA\Property(property="text", type="string", example="Something's broken."),
+     *                 @OA\Property(property="image_path", type="string", example="/images/problem.jpg"),
+     *                 @OA\Property(property="image_type", type="string", example="jpg"),
+     *                 @OA\Property(property="date", type="string", format="date-time", example="2025-08-01T10:30:00Z"),
+     *                 @OA\Property(property="status", type="string", example="open"),
+     *                 @OA\Property(property="email", type="string", example="janos@example.com"),
+     *                 @OA\Property(property="name", type="string", example="Kovács János")
+     *             )
      *         )
      *     )
      * )
      */
     public function index()
     {
-        return Report::all();
+        $reports = Report::with('creator')->get();
+
+        return ReportResource::collection($reports);
     }
 
     /**
@@ -64,7 +77,7 @@ class ReportController extends Controller
         ]);
 
         $validated['date'] = now();
-        $validated['creator_id'] = auth()->id();
+        $validated['creator_id'] = $request->user()->id;
 
         $report = Report::create($validated);
         return response()->json($report, 201);
