@@ -45,7 +45,9 @@ export default function RegisterPage() {
           const errorData = JSON.parse(responseText);
           alert(`Regisztráció sikertelen: ${errorData.message}`);
         } catch {
-          alert(`Regisztráció sikertelen: ${response.status} - ${responseText.substring(0, 100)}`);
+          alert(
+            `Regisztráció sikertelen: ${response.status} - ${responseText.substring(0, 100)}`,
+          );
         }
       }
     } catch (error) {

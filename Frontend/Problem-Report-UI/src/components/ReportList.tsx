@@ -6,8 +6,8 @@ export interface Report {
   imageType: string | null;
   date: string;
   status: string;
-  creatorId: number;
-  name?: string; // optional until user data is joined
+  email: string;
+  name?: string;
 }
 
 interface ReportListProps {
