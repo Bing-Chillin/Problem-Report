@@ -113,7 +113,7 @@ class ReportController extends Controller
      *             @OA\Schema(
      *                 @OA\Property(property="subsystem", type="string", example="ProblemReport"),
      *                 @OA\Property(property="text", type="string", example="Something is broken"),
-     *                 @OA\Property(property="status", type="string", enum={"open", "in_progress", "closed"}, example="open"),
+     *                 @OA\Property(property="status", type="string", enum={"nyitott", "lezárt"}, example="nyitott"),
      *                 @OA\Property(
      *                     property="image", 
      *                     type="string", 
@@ -151,7 +151,7 @@ class ReportController extends Controller
             $extension = $image->getClientOriginalExtension();
             $filename = time() . '_' . uniqid() . '.' . $extension;
 
-            $image->storeAs('reports', $filename); // Store in storage/app/private/reports
+            Storage::disk('local')->putFileAs('reports', $image, $filename);
 
             $validated['image_path'] = $filename; //eg "1723456789_64f2a1b3c4d5e.jpg"
             $validated['image_type'] = $extension;

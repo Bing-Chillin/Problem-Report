@@ -25,7 +25,7 @@ class StoreReportRequest extends FormRequest
         return [
             'subsystem' => 'required|string|max:255',
             'text' => 'required|string|max:1000',
-            'status' => 'required|string|in:open,in_progress,closed',
+            'status' => 'required|string|in:nyitott,lezárt',
             'image' => 'nullable|image|mimes:jpeg,jpg,png|max:2048', // Only JPG and PNG, max 2MB
         ];
     }
@@ -38,7 +38,7 @@ class StoreReportRequest extends FormRequest
         return [
             'subsystem.required' => 'The subsystem field is required.',
             'text.required' => 'The report description is required.',
-            'status.in' => 'Status must be one of: open, in_progress, closed.',
+            'status.in' => 'Status must be one of: nyitott, lezárt.',
             'image.image' => 'The uploaded file must be an image.',
             'image.mimes' => 'The image must be a JPG or PNG file.',
             'image.max' => 'The image size cannot exceed 2MB.',
