@@ -2,26 +2,44 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
-  const [userName, setUserName] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:5255/Auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userName, password }),
-    });
+    try {
+      const response = await fetch("http://localhost:8000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ login, password }),
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
-      navigate("/");
-      window.location.reload();
-    } else {
-      alert("Login failed");
+      const responseText = await response.text();
+      console.log("Response status:", response.status);
+      console.log("Response text:", responseText);
+
+      if (response.ok) {
+        const data = JSON.parse(responseText);
+        localStorage.setItem("token", data.token);
+        navigate("/");
+        window.location.reload();
+      } else {
+        try {
+          const errorData = JSON.parse(responseText);
+          alert(`Login failed: ${errorData.error || "Unknown error"}`);
+        } catch {
+          alert(
+            `Login failed: ${response.status} - ${responseText.substring(0, 100)}`,
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Network error:", error);
+      alert(
+        "Network error: Could not connect to server. Is the Laravel server running?",
+      );
     }
   };
 
@@ -34,9 +52,9 @@ export default function LoginPage() {
         <h2 className="text-2xl font-bold mb-4">Bejelentkezés</h2>
         <input
           type="text"
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
-          placeholder="Felhasználónév"
+          value={login}
+          onChange={(e) => setLogin(e.target.value)}
+          placeholder="Email vagy felhasználónév"
           className="w-full mb-3 p-2 border rounded"
           required
         />
@@ -58,3 +76,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
