@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use Illuminate\Http\Request;
 use App\Http\Resources\ReportResource;
+use App\Http\Resources\UserReportResource;
 use App\Http\Requests\StoreReportRequest;
 use Illuminate\Support\Facades\Storage;
 
@@ -83,11 +84,84 @@ class ReportController extends Controller
     {
         $report = Report::findOrFail($id);
 
+        return $this->getReportImage($report);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/my-reports",
+     *     summary="Get reports created by the authenticated user",
+     *     tags={"Reports"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="List of user's reports returned successfully",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="subsystem", type="string", example="ProblemReport"),
+     *                 @OA\Property(property="text", type="string", example="Something's broken."),
+     *                 @OA\Property(property="image_path", type="string", example="/images/problem.jpg"),
+     *                 @OA\Property(property="image_type", type="string", example="jpg"),
+     *                 @OA\Property(property="date", type="string", format="date-time", example="2025-08-01T10:30:00Z"),
+     *                 @OA\Property(property="status", type="string", example="open"),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function myReports(Request $request)
+    {
+        $reports = Report::where('creator_id', $request->user()->id)->get();
+
+        return UserReportResource::collection($reports);   
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/my-reports/{id}/image",
+     *     summary="Get image from user's own report",
+     *     tags={"Reports"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID of user's report",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Image file",
+     *         @OA\MediaType(
+     *             mediaType="image/jpeg"
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Image not found or report not owned by user"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
+    public function showMyImage(Request $request, string $id)
+    {
+        // Find report and ensure it belongs to the authenticated user
+        $report = Report::where('id', $id)->first();
+
+        if ($report->creator_id !== $request->user()->id) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        return $this->getReportImage($report);
+    }
+
+    private function getReportImage(Report $report)
+    {
         if (!$report->image_path) {
             return response()->json(['message' => 'Image not found'], 404);
         }
 
-        $filePath = storage_path('app/private/reports/' . $report->image_path); //full path
+        $filePath = storage_path('app/private/reports/' . $report->image_path);
         
         if (!file_exists($filePath)) {
             return response()->json(['message' => 'Image file not found'], 404);

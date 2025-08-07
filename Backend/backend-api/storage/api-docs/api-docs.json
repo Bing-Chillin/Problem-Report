@@ -254,11 +254,10 @@
                                     "status": {
                                         "type": "string",
                                         "enum": [
-                                            "open",
-                                            "in_progress",
-                                            "closed"
+                                            "nyitott",
+                                            "lezárt"
                                         ],
-                                        "example": "open"
+                                        "example": "nyitott"
                                     },
                                     "image": {
                                         "description": "Image file (only JPG and PNG allowed, max 2MB)",
@@ -345,6 +344,108 @@
                     },
                     "403": {
                         "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/my-reports": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get reports created by the authenticated user",
+                "operationId": "98f6c364f8822929a91c61d55fd2a159",
+                "responses": {
+                    "200": {
+                        "description": "List of user's reports returned successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "subsystem": {
+                                                "type": "string",
+                                                "example": "ProblemReport"
+                                            },
+                                            "text": {
+                                                "type": "string",
+                                                "example": "Something's broken."
+                                            },
+                                            "image_path": {
+                                                "type": "string",
+                                                "example": "/images/problem.jpg"
+                                            },
+                                            "image_type": {
+                                                "type": "string",
+                                                "example": "jpg"
+                                            },
+                                            "date": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2025-08-01T10:30:00Z"
+                                            },
+                                            "status": {
+                                                "type": "string",
+                                                "example": "open"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/my-reports/{id}/image": {
+            "get": {
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Get image from user's own report",
+                "operationId": "d4d2b9428808d252d4e41fc6ba6cb644",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of user's report",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Image file",
+                        "content": {
+                            "image/jpeg": {}
+                        }
+                    },
+                    "404": {
+                        "description": "Image not found or report not owned by user"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 },
                 "security": [
