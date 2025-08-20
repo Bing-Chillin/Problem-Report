@@ -23,6 +23,7 @@ export default function LoginPage() {
       if (response.ok) {
         const data = JSON.parse(responseText);
         localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
         navigate("/");
         window.location.reload();
       } else {
@@ -37,9 +38,7 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error("Network error:", error);
-      alert(
-        "Network error: Could not connect to server. Is the Laravel server running?",
-      );
+      alert("Network error");
     }
   };
 
@@ -76,4 +75,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

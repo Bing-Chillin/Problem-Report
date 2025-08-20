@@ -72,6 +72,7 @@ class AuthController extends Controller
         $formData['password'] = bcrypt($request->password);
   
         $user = User::create($formData);        
+        $user->load('role');
   
         return response()->json([ 
             'user' => $user, 
@@ -122,9 +123,10 @@ class AuthController extends Controller
         }
 
         $token = $request->user()->createToken('API Token')->accessToken;
+        $user = Auth::user()->load('role');
 
         return response()->json([
-            'user' => Auth::user(),
+            'user' => $user,
             'token' => $token
         ], 200);
     }

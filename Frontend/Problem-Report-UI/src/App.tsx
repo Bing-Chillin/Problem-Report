@@ -12,6 +12,7 @@ import RegisterPage from "./components/RegisterPage.tsx";
 import api from "./api/axios";
 import { useNavigate } from "react-router-dom";
 import Frontpage from "./components/Frontpage.tsx";
+import { isLoggedIn, isAdmin, isDeveloper } from "./utils/auth";
 
 function App() {
   const [reports, setReports] = useState<Report[]>([]);
@@ -22,10 +23,20 @@ function App() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await api.get("/reports");
+        let endpoint = "/reports";
+
+        if (isLoggedIn()) {
+          if (!isAdmin() && !isDeveloper()) {
+            endpoint = "/my-reports";
+          }
+        } else {
+          endpoint = "/reports";
+        }
+
+        const response = await api.get(endpoint);
 
         const reportsData = response.data.data || response.data;
-        
+
         const mappedReports: Report[] = reportsData.map((r: any) => ({
           id: r.id,
           subsystem: r.subsystem,
@@ -62,8 +73,19 @@ function App() {
 
     if (!confirmed) return;
 
-    setReports((prev) => prev.filter((r) => r.id !== report.id));
-    await api.delete(`/reports/${report.id}`);
+    try {
+      setReports((prev) => prev.filter((r) => r.id !== report.id));
+      await api.delete(`/reports/${report.id}`);
+    } catch (error) {
+      console.error("Failed to delete report:", error);
+      // If delete failed, restore the report in the UI
+      setModified(true); // This will trigger a refetch
+      if ((error as any)?.response?.data?.message) {
+        alert(`Hiba: ${(error as any).response.data.message}`);
+      } else {
+        alert("Hiba történt a bejelentés törlése során!");
+      }
+    }
   };
 
   // Toggle report status
@@ -100,7 +122,7 @@ function App() {
 
       // Validate file type if present
       if (reportData.image) {
-        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
         if (!allowedTypes.includes(reportData.image.type)) {
           alert("Csak JPG és PNG fájlok engedélyezettek!");
           return;
@@ -111,7 +133,7 @@ function App() {
       formData.append("text", reportData.text);
       formData.append("subsystem", reportData.subsystem);
       formData.append("status", "nyitott");
-      
+
       if (reportData.image) {
         formData.append("image", reportData.image);
       }
@@ -127,10 +149,9 @@ function App() {
     } catch (error) {
       console.error("Failed to create report:", error);
       if ((error as any)?.response?.status === 422) {
-        // Validation errors
         const errors = (error as any)?.response?.data?.errors;
         if (errors) {
-          const errorMessages = Object.values(errors).flat().join('\n');
+          const errorMessages = Object.values(errors).flat().join("\n");
           alert(`Validációs hibák:\n${errorMessages}`);
         } else {
           alert("Validációs hiba történt!");

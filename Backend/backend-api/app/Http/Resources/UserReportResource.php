@@ -22,6 +22,7 @@ class UserReportResource extends JsonResource
             'image_type' => $this->image_type,
             'date' => $this->date,
             'status' => $this->status,
+            'creator_id' => $this->creator_id,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
