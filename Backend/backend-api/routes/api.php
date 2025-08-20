@@ -17,8 +17,8 @@ Route::middleware('auth:api')->group(function () {
         Route::put('/reports/{id}', [ReportController::class, 'update']);
     });
     
-    // Admin only
-    Route::middleware('role:admin')->group(function () {
+    // Admin and Users can delete reports
+    Route::middleware('role:admin,user')->group(function () {
         Route::delete('/reports/{id}', [ReportController::class, 'destroy']);
     });
 });

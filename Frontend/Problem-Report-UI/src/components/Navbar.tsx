@@ -1,18 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { isUser } from "../utils/auth";
 
 function Navbar() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in by checking for token
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setIsLoggedIn(false);
     navigate("/");
 
@@ -28,24 +29,29 @@ function Navbar() {
           className="mr-2 cursor-pointer"
           onClick={() => navigate("/")}
         />
-        <div className="flex space-x-6">
-          <div className="relative group">
-            <button
-              className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline cursor-pointer"
-              onClick={() => navigate("/form")}
-            >
-              Problémabejelentés
-            </button>
-          </div>
+
+        {isLoggedIn && (
           <div>
-            <button
-              className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline cursor-pointer"
-              onClick={() => navigate("/reports")}
-            >
-              Bejelentések
-            </button>
+            <div className="flex space-x-6">
+              <div className="relative group">
+                <button
+                  className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline cursor-pointer"
+                  onClick={() => navigate("/form")}
+                >
+                  Problémabejelentés
+                </button>
+              </div>
+              <div>
+                <button
+                  className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline cursor-pointer"
+                  onClick={() => navigate("/reports")}
+                >
+                  {isLoggedIn && isUser() ? "Bejelentéseim" : "Bejelentések"}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Auth buttons */}
