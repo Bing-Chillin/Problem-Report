@@ -15,6 +15,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
+        Report::truncate();
+        User::truncate();
+
+        $this->createUsers();
+        $this->createReports();
+    }
+
+    private function createUsers()
+    {
         User::create([
             'first_name' => 'Felhasználó',
             'last_name' => 'Admin',
@@ -33,6 +43,18 @@ class DatabaseSeeder extends Seeder
             'role_id' => 2
         ]);
 
+        User::create([
+            'first_name' => 'Felhasználó',
+            'last_name' => 'Dispatcher',
+            'username' => 'dispatcher',
+            'email' => 'dispatcher@example.com',
+            'password' => Hash::make('123'),
+            'role_id' => 4
+        ]);
+    }
+
+    private function createReports()
+    {
         $user = User::create([
             'first_name' => 'Felhasználó',
             'last_name' => 'Teszt',
