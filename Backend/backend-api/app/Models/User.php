@@ -78,4 +78,9 @@ class User extends Authenticatable
     {
         return $this->hasRole('user');
     }
+
+    public function isDispatcher(): bool
+    {
+        return $this->hasRole('dispatcher');
+    }
 }

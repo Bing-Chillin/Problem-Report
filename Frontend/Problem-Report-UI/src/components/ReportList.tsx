@@ -2,8 +2,8 @@ import { useState } from "react";
 import {
   canDeleteReports,
   isLoggedIn,
-  isAdmin,
-  isDeveloper,
+  canViewAllReports,
+  canModifyReportStatus,
 } from "../utils/auth";
 
 export interface Report {
@@ -22,6 +22,7 @@ interface ReportListProps {
   reports: Report[];
   onDelete: (report: Report) => void;
   onToggleStatus: (report: Report) => void;
+  onStatusChange?: (report: Report, newStatus: string) => void;
   access: boolean;
 }
 
@@ -32,21 +33,42 @@ const subsystemLabels: Record<string, string> = {
   ProblemReport: "Hibabejelentő",
 };
 
+const statusLabels: Record<string, string> = {
+  nyitott: "Nyitott",
+  folyamatban: "Folyamatban",
+  lezárt: "Lezárt",
+};
+
+const statusColors: Record<string, string> = {
+  nyitott: "bg-red-500",
+  folyamatban: "bg-yellow-500",
+  lezárt: "bg-green-500",
+};
+
 function ReportList({
   reports,
   onDelete,
   onToggleStatus,
+  onStatusChange,
   access,
 }: ReportListProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState<boolean>(false);
+
+  const handleStatusChange = (report: Report, newStatus: string) => {
+    if (onStatusChange) {
+      onStatusChange(report, newStatus);
+    } else {
+      onToggleStatus(report);
+    }
+  };
 
   const handleImageClick = async (reportId: number) => {
     setImageLoading(true);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        alert("Nincs érvényes bejelentkezés!");
+        alert("Kérjük jelentkeyyen be");
         setImageLoading(false);
         return;
       }
@@ -54,7 +76,7 @@ function ReportList({
       console.log(`Attempting to fetch image for report ID: ${reportId}`);
 
       let imageEndpoint;
-      if (isAdmin() || isDeveloper()) {
+      if (canViewAllReports()) {
         imageEndpoint = `http://localhost:8000/api/reports/${reportId}/image`;
       } else {
         imageEndpoint = `http://localhost:8000/api/my-reports/${reportId}/image`;
@@ -165,16 +187,35 @@ function ReportList({
 
               {/* Right - Status & Delete */}
               <div className="flex flex-col items-end w-1/4 gap-y-2">
-                <button
-                  onClick={() => onToggleStatus(report)}
-                  aria-label={report.status === "lezárt" ? "Lezárt" : "Nyitott"}
-                  className={`w-5 h-5 rounded-full 
-                  ${report.status === "lezárt" ? "bg-green-500" : "bg-red-500"} 
-                  ring-2 ring-gray-300 hover:ring-gray-600 transition`}
-                />
-                <span className="text-xs text-gray-500 select-none">
-                  {report.status === "lezárt" ? "Lezárt" : "Nyitott"}
-                </span>
+                {canModifyReportStatus() ? (
+                  <div className="relative">
+                    <select
+                      value={report.status}
+                      onChange={(e) => handleStatusChange(report, e.target.value)}
+                      className={`px-3 py-1 rounded-md text-xs font-medium text-white border-none outline-none cursor-pointer appearance-none pr-8
+                        ${statusColors[report.status] || "bg-gray-500"}`}
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.5rem center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: '1rem 1rem'
+                      }}
+                    >
+                      <option value="nyitott" style={{color: 'black'}}>Nyitott</option>
+                      <option value="folyamatban" style={{color: 'black'}}>Folyamatban</option>
+                      <option value="lezárt" style={{color: 'black'}}>Lezárt</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-3 rounded-full ${statusColors[report.status] || "bg-gray-500"}`}
+                    />
+                    <span className="text-xs text-gray-500 select-none">
+                      {statusLabels[report.status] || report.status}
+                    </span>
+                  </div>
+                )}
 
                 {canDeleteReports() && (
                   <button

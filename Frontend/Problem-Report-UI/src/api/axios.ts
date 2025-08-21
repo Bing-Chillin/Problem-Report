@@ -1,4 +1,5 @@
 import axios from "axios";
+import { logout } from "../utils/auth";
 
 const api = axios.create({
   baseURL: "http://localhost:8000/api",
@@ -12,5 +13,19 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const token = localStorage.getItem("token");
+      if (token) {
+        alert("A munkamenet lejárt. Kérjük, jelentkezz be újra.");
+        logout();
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

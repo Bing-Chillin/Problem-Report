@@ -12,13 +12,16 @@ import RegisterPage from "./components/RegisterPage.tsx";
 import api from "./api/axios";
 import { useNavigate } from "react-router-dom";
 import Frontpage from "./components/Frontpage.tsx";
-import { isLoggedIn, isAdmin, isDeveloper } from "./utils/auth";
+import { isLoggedIn, canViewAllReports } from "./utils/auth";
+import { useInactivityTimer } from "./hooks/useInactivityTimer";
 
 function App() {
   const [reports, setReports] = useState<Report[]>([]);
   const [modified, setModified] = useState(false);
   const [hasAccess, setHasAccess] = useState(true);
   const navigate = useNavigate();
+  
+  useInactivityTimer();
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -26,7 +29,7 @@ function App() {
         let endpoint = "/reports";
 
         if (isLoggedIn()) {
-          if (!isAdmin() && !isDeveloper()) {
+          if (!canViewAllReports()) {
             endpoint = "/my-reports";
           }
         } else {
@@ -78,8 +81,7 @@ function App() {
       await api.delete(`/reports/${report.id}`);
     } catch (error) {
       console.error("Failed to delete report:", error);
-      // If delete failed, restore the report in the UI
-      setModified(true); // This will trigger a refetch
+      setModified(true);
       if ((error as any)?.response?.data?.message) {
         alert(`Hiba: ${(error as any).response.data.message}`);
       } else {
@@ -88,10 +90,25 @@ function App() {
     }
   };
 
-  // Toggle report status
+  // Switch report status
 
   const toggleStatus = async (report: Report) => {
-    const updatedStatus = report.status === "lezárt" ? "nyitott" : "lezárt";
+    let updatedStatus: string;
+    
+    switch (report.status) {
+      case "nyitott":
+        updatedStatus = "folyamatban";
+        break;
+      case "folyamatban":
+        updatedStatus = "lezárt";
+        break;
+      case "lezárt":
+        updatedStatus = "nyitott";
+        break;
+      default:
+        updatedStatus = "nyitott";
+        break;
+    }
 
     try {
       await api.put(`/reports/${report.id}`, {
@@ -110,17 +127,40 @@ function App() {
     }
   };
 
+  // Change report status to specific value
+
+  const changeStatus = async (report: Report, newStatus: string) => {
+    try {
+      await api.put(`/reports/${report.id}`, {
+        text: report.text,
+        subsystem: report.subsystem,
+        status: newStatus,
+      });
+
+      setReports((prev) =>
+        prev.map((r) =>
+          r.id === report.id ? { ...r, status: newStatus } : r,
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      if ((err as any)?.response?.data?.message) {
+        alert(`Hiba: ${(err as any).response.data.message}`);
+      } else {
+        alert("Hiba történt a státusz frissítése során!");
+      }
+    }
+  };
+
   // Create new report
 
   const createReport = async (reportData: ReportFormData) => {
     try {
-      // Validate file size if present
       if (reportData.image && reportData.image.size > 2 * 1024 * 1024) {
         alert("A kép mérete nem lehet nagyobb 2MB-nál!");
         return;
       }
 
-      // Validate file type if present
       if (reportData.image) {
         const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
         if (!allowedTypes.includes(reportData.image.type)) {
@@ -180,6 +220,7 @@ function App() {
               reports={reports}
               onDelete={deleteReport}
               onToggleStatus={toggleStatus}
+              onStatusChange={changeStatus}
               access={hasAccess}
             />
           }

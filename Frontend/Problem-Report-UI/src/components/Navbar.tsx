@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { isUser } from "../utils/auth";
+import { isUser, logout } from "../utils/auth";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -12,12 +12,8 @@ function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
     setIsLoggedIn(false);
-    navigate("/");
-
-    window.location.reload();
+    logout();
   };
 
   return (

@@ -50,7 +50,7 @@ function Frontpage() {
           <div className="rounded-lg overflow-hidden text-center">
             <button
               className="text-black text-9xl text-center pb-8"
-              onClick={() => navigate("/form")}
+              //onClick={() => navigate("/form")}
             >
               <FontAwesomeIcon icon={faLightbulb} className="cursor-pointer" />
             </button>
@@ -63,7 +63,7 @@ function Frontpage() {
           <div className="rounded-lg overflow-hidden text-center">
             <button
               className="text-black text-9xl text-center pb-8"
-              onClick={() => navigate("/form")}
+              //</div>onClick={() => navigate("/form")}
             >
               <FontAwesomeIcon icon={faBug} className="cursor-pointer" />
             </button>

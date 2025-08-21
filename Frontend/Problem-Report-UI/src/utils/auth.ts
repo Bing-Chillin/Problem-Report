@@ -42,6 +42,10 @@ export const isDeveloper = (): boolean => {
   return hasRole("developer");
 };
 
+export const isDispatcher = (): boolean => {
+  return hasRole("dispatcher");
+};
+
 export const isUser = (): boolean => {
   return hasRole("user");
 };
@@ -50,6 +54,21 @@ export const canDeleteReports = (): boolean => {
   return isAdmin() || isUser();
 };
 
+export const canViewAllReports = (): boolean => {
+  return isAdmin() || isDeveloper() || isDispatcher();
+};
+
+export const canModifyReportStatus = (): boolean => {
+  return isAdmin() || isDeveloper() || isDispatcher();
+};
+
 export const isLoggedIn = (): boolean => {
   return !!localStorage.getItem("token") && !!getCurrentUser();
+};
+
+export const logout = (): void => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  window.location.href = "/";
 };
