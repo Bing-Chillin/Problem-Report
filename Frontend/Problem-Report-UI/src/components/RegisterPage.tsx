@@ -24,6 +24,23 @@ export default function RegisterPage() {
 
   const navigate = useNavigate();
 
+  const translateErrorMessage = (message: string): string => {
+    const translations: Record<string, string> = {
+      'email_required': 'Email cím megadása kötelező',
+      'email_invalid': 'Érvényes email címet adj meg',
+      'email_exists': 'Ez az email cím már regisztrálva van',
+      'password_required': 'Jelszó megadása kötelező',
+      'password_too_short': 'A jelszó túl rövid',
+      'first_name_required': 'Keresztnév megadása kötelező',
+      'first_name_too_long': 'A keresztnév túl hosszú',
+      'last_name_required': 'Vezetéknév megadása kötelező',
+      'last_name_too_long': 'A vezetéknév túl hosszú',
+      'username_exists': 'Ez a felhasználónév már foglalt',
+      'username_too_long': 'A felhasználónév túl hosszú',
+    };
+    return translations[message] || message;
+  };
+
   const showAlert = (type: AlertType, message: string) => {
     setAlert({ show: true, type, message });
   };
@@ -68,17 +85,20 @@ export default function RegisterPage() {
           
           switch (response.status) {
             case 422:
-              errorMessage = "Kérjük, töltsd ki helyesen az összes mezőt! Ellenőrizd, hogy minden adat megfelelő formátumban van megadva.";
-              break;
-              
-            case 409:
-              // Conflict
-              if (errorData.message && errorData.message.toLowerCase().includes('email')) {
-                errorMessage = "Ez az email cím már regisztrálva van!";
-              } else if (errorData.message && errorData.message.toLowerCase().includes('username')) {
-                errorMessage = "Ez a felhasználónév már foglalt!";
+              if (errorData.errors) {
+                const fieldErrors: string[] = [];
+                
+                Object.entries(errorData.errors).forEach(([field, messages]) => {
+                  const messageArray = Array.isArray(messages) ? messages : [messages];
+                  messageArray.forEach((msg: string) => {
+                    const translatedMessage = translateErrorMessage(msg);
+                    fieldErrors.push(translatedMessage);
+                  });
+                });
+                
+                errorMessage = fieldErrors.length > 0 ? fieldErrors.join('') : "Kérjük, töltsd ki helyesen az összes mezőt!";
               } else {
-                errorMessage = "A felhasználó már létezik!";
+                errorMessage = "Kérjük, töltsd ki helyesen az összes mezőt!";
               }
               break;
               
@@ -166,3 +186,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+
