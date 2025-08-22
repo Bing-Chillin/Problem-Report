@@ -24,39 +24,6 @@ export default function RegisterPage() {
 
   const navigate = useNavigate();
 
-  const getHungarianFieldName = (field: string): string => {
-    const fieldNames: Record<string, string> = {
-      'first_name': 'Keresztnév',
-      'last_name': 'Vezetéknév',
-      'username': 'Felhasználónév',
-      'email': 'Email',
-      'password': 'Jelszó',
-      'password_confirmation': 'Jelszó megerősítés'
-    };
-    return fieldNames[field] || field;
-  };
-
-  const translateValidationMessage = (message: string): string => {
-    const translations: Record<string, string> = {
-      'required': 'kötelező mező',
-      'email': 'érvényes email címet adj meg',
-      'min': 'túl rövid',
-      'max': 'túl hosszú',
-      'confirmed': 'a jelszavak nem egyeznek',
-      'unique': 'már létezik',
-      'alpha': 'csak betűket tartalmazhat',
-      'alpha_num': 'csak betűket és számokat tartalmazhat'
-    };
-
-    for (const [key, translation] of Object.entries(translations)) {
-      if (message.toLowerCase().includes(key)) {
-        return translation;
-      }
-    }
-    
-    return message;
-  };
-
   const showAlert = (type: AlertType, message: string) => {
     setAlert({ show: true, type, message });
   };
@@ -87,8 +54,6 @@ export default function RegisterPage() {
       });
 
       const responseText = await response.text();
-      console.log("Response status:", response.status);
-      console.log("Response text:", responseText);
 
       if (response.ok) {
         showAlert("success", "Sikeres regisztráció! Átirányítás a bejelentkezéshez...");
@@ -103,21 +68,7 @@ export default function RegisterPage() {
           
           switch (response.status) {
             case 422:
-              if (errorData.errors) {
-                const fieldErrors: string[] = [];
-                
-                Object.entries(errorData.errors).forEach(([field, messages]) => {
-                  const fieldName = getHungarianFieldName(field);
-                  const messageArray = Array.isArray(messages) ? messages : [messages];
-                  messageArray.forEach((msg: string) => {
-                    fieldErrors.push(`${fieldName}: ${translateValidationMessage(msg)}`);
-                  });
-                });
-                
-                errorMessage = fieldErrors.join('\n');
-              } else {
-                errorMessage = "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.";
-              }
+              errorMessage = "Kérjük, töltsd ki helyesen az összes mezőt! Ellenőrizd, hogy minden adat megfelelő formátumban van megadva.";
               break;
               
             case 409:
@@ -161,8 +112,7 @@ export default function RegisterPage() {
         }
       }
     } catch (error) {
-      console.error("Network error:", error);
-      showAlert("error", "Hálózati hiba");
+      showAlert("error", "Hálózati hiba! Kérjük, ellenőrizd az internetkapcsolatot és próbáld újra.");
     }
   };
 
