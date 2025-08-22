@@ -6,7 +6,7 @@ import ReportList from "./components/ReportList";
 import { confirmDialog } from "./components/ConfirmDialog";
 import type { Report } from "./components/ReportList";
 import type { ReportFormData } from "./components/Form";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import LoginPage from "./components/LoginPage.tsx";
 import RegisterPage from "./components/RegisterPage.tsx";
 import api from "./api/axios";
@@ -18,7 +18,6 @@ import { useInactivityTimer } from "./hooks/useInactivityTimer";
 function App() {
   const [reports, setReports] = useState<Report[]>([]);
   const [modified, setModified] = useState(false);
-  const [hasAccess, setHasAccess] = useState(true);
   const navigate = useNavigate();
   
   useInactivityTimer();
@@ -56,9 +55,6 @@ function App() {
         console.log("Fetched reports:", mappedReports);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
-        if ((error as any).response?.status === 403) {
-          setHasAccess(false);
-        }
       }
     };
     fetchReports();
@@ -178,28 +174,38 @@ function App() {
         formData.append("image", reportData.image);
       }
 
-      const response = await api.post("/reports", formData, {
+      await api.post("/reports", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      console.log("Report created successfully:", response.data);
       setModified(true);
     } catch (error) {
       console.error("Failed to create report:", error);
-      if ((error as any)?.response?.status === 422) {
-        const errors = (error as any)?.response?.data?.errors;
+      const response = (error as any)?.response;
+      
+      if (response?.status === 422) {
+        // Validation errors
+        const errors = response?.data?.errors;
         if (errors) {
           const errorMessages = Object.values(errors).flat().join("\n");
           alert(`Validációs hibák:\n${errorMessages}`);
         } else {
-          alert("Validációs hiba történt!");
+          alert("Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.");
         }
-      } else if ((error as any)?.response?.data?.message) {
-        alert(`Hiba: ${(error as any).response.data.message}`);
+      } else if (response?.status === 401) {
+        alert("Nincs jogosultságod bejelentés létrehozásához! Kérjük, jelentkezz be újra.");
+      } else if (response?.status === 413) {
+        alert("A feltöltött fájl túl nagy! Kérjük, válassz kisebb képet.");
+      } else if (response?.status === 415) {
+        alert("Nem támogatott fájlformátum! Csak JPG és PNG képeket fogadunk el.");
+      } else if (response?.status >= 500) {
+        alert("Szerverhiba! Kérjük, próbáld újra később.");
+      } else if (response?.data?.message) {
+        alert(`Hiba: ${response.data.message}`);
       } else {
-        alert("Hiba történt a bejelentés mentése során!");
+        alert("Hiba történt a bejelentés mentése során! Kérjük, próbáld újra.");
       }
     }
   };
@@ -221,7 +227,6 @@ function App() {
               onDelete={deleteReport}
               onToggleStatus={toggleStatus}
               onStatusChange={changeStatus}
-              access={hasAccess}
             />
           }
         />

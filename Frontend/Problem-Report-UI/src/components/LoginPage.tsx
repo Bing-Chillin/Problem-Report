@@ -1,10 +1,29 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Alert from "./Alert";
+import type { AlertType } from "./Alert";
 
 export default function LoginPage() {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const [alert, setAlert] = useState<{
+    show: boolean;
+    type: AlertType;
+    message: string;
+  }>({
+    show: false,
+    type: "info",
+    message: "",
+  });
   const navigate = useNavigate();
+
+  const showAlert = (type: AlertType, message: string) => {
+    setAlert({ show: true, type, message });
+  };
+
+  const hideAlert = () => {
+    setAlert({ show: false, type: "info", message: "" });
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,61 +36,132 @@ export default function LoginPage() {
       });
 
       const responseText = await response.text();
-      console.log("Response status:", response.status);
-      console.log("Response text:", responseText);
 
       if (response.ok) {
         const data = JSON.parse(responseText);
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        navigate("/");
-        window.location.reload();
+        showAlert("success", "Sikeres bejelentkezés! Átirányítás...");
+        setTimeout(() => {
+          navigate("/");
+          window.location.reload();
+        }, 1500);
       } else {
+        let errorMessage = "Bejelentkezés sikertelen!";
+        
         try {
           const errorData = JSON.parse(responseText);
-          alert(`Login failed: ${errorData.error || "Unknown error"}`);
+          switch (response.status) {
+            case 401:
+              // Unauthorized
+              if (errorData.error && errorData.error.toLowerCase().includes('credential')) {
+                errorMessage = "Hibás felhasználónév vagy jelszó!";
+              } else if (errorData.error && errorData.error.toLowerCase().includes('password')) {
+                errorMessage = "Hibás jelszó!";
+              } else if (errorData.error && errorData.error.toLowerCase().includes('username')) {
+                errorMessage = "Ismeretlen felhasználónév!";
+              } else if (errorData.error && errorData.error.toLowerCase().includes('email')) {
+                errorMessage = "Ismeretlen email cím!";
+              } else {
+                errorMessage = "Hibás bejelentkezési adatok!";
+              }
+              break;
+            
+            case 422:
+              // Validation error
+              if (errorData.errors) {
+                const errors = Object.values(errorData.errors).flat();
+                errorMessage = `Hibás adatok: ${errors.join(', ')}`;
+              } else {
+                errorMessage = "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.";
+              }
+              break;
+            
+            case 429:
+              // Too many requests
+              errorMessage = "Túl sok bejelentkezési kísérlet! Kérjük, várj egy kicsit.";
+              break;
+            
+            case 500:
+              // Server error
+              errorMessage = "Szerverhiba! Kérjük, próbáld újra később.";
+              break;
+            
+            case 503:
+              // Service unavailable
+              errorMessage = "A szolgáltatás jelenleg nem elérhető! Kérjük, próbáld újra később.";
+              break;
+            
+            default:
+              // Generic error based on response message
+              if (errorData.error) {
+                errorMessage = `Hiba: ${errorData.error}`;
+              } else if (errorData.message) {
+                errorMessage = `Hiba: ${errorData.message}`;
+              } else {
+                errorMessage = "Ismeretlen hiba történt!";
+              }
+          }
+          
+          showAlert("error", errorMessage);
         } catch {
-          alert(
-            `Login failed: ${response.status} - ${responseText.substring(0, 100)}`,
-          );
+          // If we can't parse the error response
+          if (response.status === 401) {
+            showAlert("error", "Hibás felhasználónév vagy jelszó!");
+          } else if (response.status >= 500) {
+            showAlert("error", "Szerverhiba! Kérjük, próbáld újra később.");
+          } else {
+            showAlert("error", "Bejelentkezés sikertelen! Kérjük, ellenőrizd az adataidat.");
+          }
         }
       }
     } catch (error) {
       console.error("Network error:", error);
-      alert("Network error");
+      showAlert("error", "Hálózati hiba! Kérjük, próbáld újra.");
     }
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white p-6 rounded shadow-md w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-4">Bejelentkezés</h2>
-        <input
-          type="text"
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
-          placeholder="Email vagy felhasználónév"
-          className="w-full mb-3 p-2 border rounded"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Jelszó"
-          className="w-full mb-3 p-2 border rounded"
-          required
-        />
-        <button
-          type="submit"
-          className="w-full bg-[#236A75] text-white py-2 px-4 rounded hover:bg-[#0E3F47]"
-        >
-          Bejelentkezés
-        </button>
-      </form>
+      <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+        {alert.show && (
+          <div className="mb-4">
+            <Alert
+              type={alert.type}
+              message={alert.message}
+              onClose={hideAlert}
+              autoClose={true}
+              autoCloseDelay={alert.type === "success" ? 2000 : 5000}
+            />
+          </div>
+        )}
+        
+        <form onSubmit={handleLogin}>
+          <h2 className="text-2xl font-bold mb-4">Bejelentkezés</h2>
+          <input
+            type="text"
+            value={login}
+            onChange={(e) => setLogin(e.target.value)}
+            placeholder="Email vagy felhasználónév"
+            className="w-full mb-3 p-2 border rounded"
+            required
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Jelszó"
+            className="w-full mb-3 p-2 border rounded"
+            required
+          />
+          <button
+            type="submit"
+            className="w-full bg-[#236A75] text-white py-2 px-4 rounded hover:bg-[#0E3F47]"
+          >
+            Bejelentkezés
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

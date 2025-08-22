@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { PhotoIcon } from "@heroicons/react/24/solid";
+import Alert from "./Alert";
+import type { AlertType } from "./Alert";
 
 export type ReportFormData = {
   text: string;
@@ -16,35 +18,53 @@ export default function Form({
   const [text, setText] = useState("");
   const [subsystem, setSubsystem] = useState("None");
   const [file, setFile] = useState<File | null>(null);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [alert, setAlert] = useState<{
+    show: boolean;
+    type: AlertType;
+    message: string;
+  }>({
+    show: false,
+    type: "info",
+    message: "",
+  });
+
+  const showAlert = (type: AlertType, message: string) => {
+    setAlert({ show: true, type, message });
+  };
+
+  const hideAlert = () => {
+    setAlert({ show: false, type: "info", message: "" });
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     // Validate
     if (!text || subsystem === "None") {
-      alert("Tölts ki minden mezőt!");
+      showAlert("error", "Tölts ki minden mezőt!");
       return;
     }
 
     onCreate({ text, subsystem, image: file });
 
-    setSuccessMessage("Sikeres mentés!");
+    showAlert("success", "Sikeres mentés!");
 
     setText("");
     setSubsystem("None");
     setFile(null);
-
-    setTimeout(() => {
-      setSuccessMessage("");
-    }, 3000);
   };
 
   return (
     <form onSubmit={handleSubmit} className="p-6 bg-white rounded shadow-md">
-      {successMessage && (
-        <div className="mb-4 text-green-600 font-medium bg-green-50 border border-green-300 rounded p-2">
-          {successMessage}
+      {alert.show && (
+        <div className="mb-4">
+          <Alert
+            type={alert.type}
+            message={alert.message}
+            onClose={hideAlert}
+            autoClose={true}
+            autoCloseDelay={5000}
+          />
         </div>
       )}
 
@@ -108,16 +128,15 @@ export default function Form({
           onChange={(e) => {
             const selectedFile = e.target.files?.[0] || null;
             if (selectedFile) {
-              // Validate file size (2MB = 2 * 1024 * 1024 bytes)
               if (selectedFile.size > 2 * 1024 * 1024) {
-                alert("A fájl mérete túl nagy! Maximum 2MB engedélyezett.");
+                showAlert("error", "A fájl mérete túl nagy! Maximum 2MB engedélyezett.");
                 e.target.value = ""; // Clear the input
                 return;
               }
               // Validate file type
               const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
               if (!allowedTypes.includes(selectedFile.type)) {
-                alert("Csak JPG és PNG fájlok engedélyezettek!");
+                showAlert("error", "Csak JPG és PNG fájlok engedélyezettek!");
                 e.target.value = ""; // Clear the input
                 return;
               }

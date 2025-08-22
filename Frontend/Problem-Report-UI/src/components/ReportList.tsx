@@ -23,7 +23,6 @@ interface ReportListProps {
   onDelete: (report: Report) => void;
   onToggleStatus: (report: Report) => void;
   onStatusChange?: (report: Report, newStatus: string) => void;
-  access: boolean;
 }
 
 const subsystemLabels: Record<string, string> = {
@@ -50,7 +49,6 @@ function ReportList({
   onDelete,
   onToggleStatus,
   onStatusChange,
-  access,
 }: ReportListProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState<boolean>(false);
@@ -73,8 +71,6 @@ function ReportList({
         return;
       }
 
-      console.log(`Attempting to fetch image for report ID: ${reportId}`);
-
       let imageEndpoint;
       if (canViewAllReports()) {
         imageEndpoint = `http://localhost:8000/api/reports/${reportId}/image`;
@@ -87,8 +83,6 @@ function ReportList({
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log(`Response status: ${response.status} ${response.statusText}`);
 
       if (response.ok) {
         const blob = await response.blob();
@@ -192,7 +186,7 @@ function ReportList({
                     <select
                       value={report.status}
                       onChange={(e) => handleStatusChange(report, e.target.value)}
-                      className={`px-3 py-1 rounded-md text-xs font-medium text-white border-none outline-none cursor-pointer appearance-none pr-8
+                      className={`px-3 py-1 rounded-md text-xs font-medium text-white border-none outline-none appearance-none pr-8
                         ${statusColors[report.status] || "bg-gray-500"}`}
                       style={{
                         backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
@@ -201,9 +195,9 @@ function ReportList({
                         backgroundSize: '1rem 1rem'
                       }}
                     >
-                      <option value="nyitott" style={{color: 'black'}}>Nyitott</option>
-                      <option value="folyamatban" style={{color: 'black'}}>Folyamatban</option>
-                      <option value="lezárt" style={{color: 'black'}}>Lezárt</option>
+                      <option value="nyitott">Nyitott</option>
+                      <option value="folyamatban">Folyamatban</option>
+                      <option value="lezárt">Lezárt</option>
                     </select>
                   </div>
                 ) : (

@@ -31,7 +31,7 @@ function Navbar() {
             <div className="flex space-x-6">
               <div className="relative group">
                 <button
-                  className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline cursor-pointer"
+                  className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
                   onClick={() => navigate("/form")}
                 >
                   Problémabejelentés
@@ -39,7 +39,7 @@ function Navbar() {
               </div>
               <div>
                 <button
-                  className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline cursor-pointer"
+                  className="text-gray-700 hover:text-[#236A75] font-medium focus:outline-none hover:underline"
                   onClick={() => navigate("/reports")}
                 >
                   {isLoggedIn && isUser() ? "Bejelentéseim" : "Bejelentések"}
@@ -55,7 +55,7 @@ function Navbar() {
         {isLoggedIn ? (
           <button
             onClick={handleLogout}
-            className="px-4 py-2 bg-red-800 hover:bg-red-900 text-white cursor-pointer rounded-full"
+            className="px-4 py-2 bg-red-800 hover:bg-red-900 text-white rounded-full"
           >
             Kijelentkezés
           </button>
@@ -63,14 +63,14 @@ function Navbar() {
           <>
             <button
               onClick={() => navigate("/login")}
-              className="px-4 py-2 text-[#236A75] border border-[#236A75] rounded-full cursor-pointer hover:bg-green-50"
+              className="px-4 py-2 text-[#236A75] border border-[#236A75] rounded-full hover:bg-green-50"
             >
               Bejelentkezés
             </button>
 
             <button
               onClick={() => navigate("/register")}
-              className="px-4 py-2 bg-[#236A75] hover:bg-[#0E3F47] text-white cursor-pointer rounded-full"
+              className="px-4 py-2 bg-[#236A75] hover:bg-[#0E3F47] text-white rounded-full"
             >
               Regisztráció
             </button>

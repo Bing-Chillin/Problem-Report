@@ -4,10 +4,8 @@ import {
   faPhoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useNavigate } from "react-router-dom";
 
 function Frontpage() {
-  const navigate = useNavigate();
 
   return (
     <>
@@ -18,7 +16,7 @@ function Frontpage() {
       >
         <div>
           <h1 className="text-6xl md:text-7xl text-white font-extrabold mb-4">
-            Problémabejelntő alrendszer
+            Problémabejelentő alrendszer
           </h1>
           <p className="text-white md:text-xl max-w-2xl mx-auto">
             Egyszerű és egységes mód a MindiGIS alrendszerek hibabejelentésére.
@@ -48,12 +46,9 @@ function Frontpage() {
           </div>
 
           <div className="rounded-lg overflow-hidden text-center">
-            <button
-              className="text-black text-9xl text-center pb-8"
-              //onClick={() => navigate("/form")}
-            >
-              <FontAwesomeIcon icon={faLightbulb} className="cursor-pointer" />
-            </button>
+            <div className="text-black text-9xl text-center pb-8">
+              <FontAwesomeIcon icon={faLightbulb} />
+            </div>
             <div className="p-4 text-center">
               <h3 className="font-bold text-xl mb-2">Van egy ötlete?</h3>
               <p className="text-gray-600">Ossza meg velünk!</p>
@@ -61,12 +56,9 @@ function Frontpage() {
           </div>
 
           <div className="rounded-lg overflow-hidden text-center">
-            <button
-              className="text-black text-9xl text-center pb-8"
-              //</div>onClick={() => navigate("/form")}
-            >
-              <FontAwesomeIcon icon={faBug} className="cursor-pointer" />
-            </button>
+            <div className="text-black text-9xl text-center pb-8">
+              <FontAwesomeIcon icon={faBug} />
+            </div>
             <div className="p-4 text-center">
               <h3 className="font-bold text-xl mb-2">Hibába ütközött?</h3>
               <p className="text-gray-600">
