@@ -88,7 +88,7 @@ export default function RegisterPage() {
               if (errorData.errors) {
                 const fieldErrors: string[] = [];
                 
-                Object.entries(errorData.errors).forEach(([field, messages]) => {
+                Object.entries(errorData.errors).forEach(([messages]) => {
                   const messageArray = Array.isArray(messages) ? messages : [messages];
                   messageArray.forEach((msg: string) => {
                     const translatedMessage = translateErrorMessage(msg);

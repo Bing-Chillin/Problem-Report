@@ -113,13 +113,25 @@ class AuthController extends Controller
         
         $loginField = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
         
+        // First check if user exists
+        $user = User::where($loginField, $login)->first();
+        
+        if (!$user) {
+            if ($loginField === 'email') {
+                return response()->json(['error' => 'email_not_found'], 401);
+            } else {
+                return response()->json(['error' => 'username_not_found'], 401);
+            }
+        }
+        
+        // User exists, now check password
         $credentials = [
             $loginField => $login,
             'password' => $password
         ];
 
         if (!Auth::attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorised'], 401);
+            return response()->json(['error' => 'password_incorrect'], 401);
         }
 
         $token = $request->user()->createToken('API Token')->accessToken;

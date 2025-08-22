@@ -17,6 +17,17 @@ export default function LoginPage() {
   });
   const navigate = useNavigate();
 
+  const translateErrorMessage = (message: string): string => {
+    const translations: Record<string, string> = {
+      'login_required': 'Felhasználónév vagy email megadása kötelező',
+      'password_required': 'Jelszó megadása kötelező',
+      'email_not_found': 'Ismeretlen email cím',
+      'username_not_found': 'Ismeretlen felhasználónév',
+      'password_incorrect': 'Hibás jelszó',
+    };
+    return translations[message] || message;
+  };
+
   const showAlert = (type: AlertType, message: string) => {
     setAlert({ show: true, type, message });
   };
@@ -53,15 +64,11 @@ export default function LoginPage() {
           const errorData = JSON.parse(responseText);
           switch (response.status) {
             case 401:
-              // Unauthorized
-              if (errorData.error && errorData.error.toLowerCase().includes('credential')) {
+              // Unauthorized - check for specific error types
+              if (errorData.error) {
+                errorMessage = translateErrorMessage(errorData.error);
+              } else if (errorData.error && errorData.error.toLowerCase().includes('credential')) {
                 errorMessage = "Hibás felhasználónév vagy jelszó!";
-              } else if (errorData.error && errorData.error.toLowerCase().includes('password')) {
-                errorMessage = "Hibás jelszó!";
-              } else if (errorData.error && errorData.error.toLowerCase().includes('username')) {
-                errorMessage = "Ismeretlen felhasználónév!";
-              } else if (errorData.error && errorData.error.toLowerCase().includes('email')) {
-                errorMessage = "Ismeretlen email cím!";
               } else {
                 errorMessage = "Hibás bejelentkezési adatok!";
               }
@@ -70,8 +77,17 @@ export default function LoginPage() {
             case 422:
               // Validation error
               if (errorData.errors) {
-                const errors = Object.values(errorData.errors).flat();
-                errorMessage = `Hibás adatok: ${errors.join(', ')}`;
+                const fieldErrors: string[] = [];
+                
+                Object.entries(errorData.errors).forEach(([messages]) => {
+                  const messageArray = Array.isArray(messages) ? messages : [messages];
+                  messageArray.forEach((msg: string) => {
+                    const translatedMessage = translateErrorMessage(msg);
+                    fieldErrors.push(translatedMessage);
+                  });
+                });
+                
+                errorMessage = fieldErrors.length > 0 ? fieldErrors.join(' ') : "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.";
               } else {
                 errorMessage = "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.";
               }
@@ -165,3 +181,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
