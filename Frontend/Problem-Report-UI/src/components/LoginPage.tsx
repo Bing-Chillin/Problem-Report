@@ -18,19 +18,7 @@ export default function LoginPage() {
   });
   const navigate = useNavigate();
 
-  const backgroundImages = [
-    "/eger.jpg",
-    "/eger2.jpg", 
-    "/eger3.jpg"
-  ];
-
-  // Debug: Log initial state
-  // useEffect(() => {
-  //   console.log("LoginPage mounted");
-  //   console.log("Background images:", backgroundImages);
-  //   console.log("Initial currentImageIndex:", currentImageIndex);
-  // }, []);
-
+  const backgroundImages = ["/eger.jpg", "/eger2.jpg", "/eger3.jpg"];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -46,11 +34,11 @@ export default function LoginPage() {
 
   const translateErrorMessage = (message: string): string => {
     const translations: Record<string, string> = {
-      'login_required': 'Felhasználónév vagy email megadása kötelező',
-      'password_required': 'Jelszó megadása kötelező',
-      'email_not_found': 'Ismeretlen email cím',
-      'username_not_found': 'Ismeretlen felhasználónév',
-      'password_incorrect': 'Hibás jelszó',
+      login_required: "Felhasználónév vagy email megadása kötelező",
+      password_required: "Jelszó megadása kötelező",
+      email_not_found: "Ismeretlen email cím",
+      username_not_found: "Ismeretlen felhasználónév",
+      password_incorrect: "Hibás jelszó",
     };
     return translations[message] || message;
   };
@@ -86,54 +74,65 @@ export default function LoginPage() {
         }, 1500);
       } else {
         let errorMessage = "Bejelentkezés sikertelen!";
-        
+
         try {
           const errorData = JSON.parse(responseText);
           switch (response.status) {
             case 401:
               if (errorData.error) {
                 errorMessage = translateErrorMessage(errorData.error);
-              } else if (errorData.error && errorData.error.toLowerCase().includes('credential')) {
+              } else if (
+                errorData.error &&
+                errorData.error.toLowerCase().includes("credential")
+              ) {
                 errorMessage = "Hibás felhasználónév vagy jelszó!";
               } else {
                 errorMessage = "Hibás bejelentkezési adatok!";
               }
               break;
-            
+
             case 422:
               // Validation error
               if (errorData.errors) {
                 const fieldErrors: string[] = [];
-                
+
                 Object.entries(errorData.errors).forEach(([messages]) => {
-                  const messageArray = Array.isArray(messages) ? messages : [messages];
+                  const messageArray = Array.isArray(messages)
+                    ? messages
+                    : [messages];
                   messageArray.forEach((msg: string) => {
                     const translatedMessage = translateErrorMessage(msg);
                     fieldErrors.push(translatedMessage);
                   });
                 });
-                
-                errorMessage = fieldErrors.length > 0 ? fieldErrors.join(' ') : "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.";
+
+                errorMessage =
+                  fieldErrors.length > 0
+                    ? fieldErrors.join(" ")
+                    : "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.";
               } else {
-                errorMessage = "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.";
+                errorMessage =
+                  "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.";
               }
               break;
-            
+
             case 429:
               // Too many requests
-              errorMessage = "Túl sok bejelentkezési kísérlet! Kérjük, várj egy kicsit.";
+              errorMessage =
+                "Túl sok bejelentkezési kísérlet! Kérjük, várj egy kicsit.";
               break;
-            
+
             case 500:
               // Server error
               errorMessage = "Szerverhiba! Kérjük, próbáld újra később.";
               break;
-            
+
             case 503:
               // Service unavailable
-              errorMessage = "A szolgáltatás jelenleg nem elérhető! Kérjük, próbáld újra később.";
+              errorMessage =
+                "A szolgáltatás jelenleg nem elérhető! Kérjük, próbáld újra később.";
               break;
-            
+
             default:
               // Generic error based on response message
               if (errorData.error) {
@@ -144,7 +143,7 @@ export default function LoginPage() {
                 errorMessage = "Ismeretlen hiba történt!";
               }
           }
-          
+
           showAlert("error", errorMessage);
         } catch {
           // If we can't parse the error response
@@ -153,7 +152,10 @@ export default function LoginPage() {
           } else if (response.status >= 500) {
             showAlert("error", "Szerverhiba! Kérjük, próbáld újra később.");
           } else {
-            showAlert("error", "Bejelentkezés sikertelen! Kérjük, ellenőrizd az adataidat.");
+            showAlert(
+              "error",
+              "Bejelentkezés sikertelen! Kérjük, ellenőrizd az adataidat.",
+            );
           }
         }
       }
@@ -171,7 +173,7 @@ export default function LoginPage() {
           <div
             key={index}
             className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+              index === currentImageIndex ? "opacity-100" : "opacity-0"
             }`}
           >
             <img
@@ -180,7 +182,7 @@ export default function LoginPage() {
               className="w-full h-full object-cover"
               onError={(e) => {
                 console.log(`Failed to load image: ${image}`);
-                e.currentTarget.style.display = 'none';
+                e.currentTarget.style.display = "none";
               }}
               onLoad={() => console.log(`Loaded image: ${image}`)}
             />
@@ -270,9 +272,9 @@ export default function LoginPage() {
                   setCurrentImageIndex(index);
                 }}
                 className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                  index === currentImageIndex 
-                    ? 'bg-[#236A75] scale-110 shadow-lg' 
-                    : 'bg-gray-300 hover:bg-gray-400'
+                  index === currentImageIndex
+                    ? "bg-[#236A75] scale-110 shadow-lg"
+                    : "bg-gray-300 hover:bg-gray-400"
                 }`}
                 aria-label={`Go to slide ${index + 1}`}
               />
@@ -286,4 +288,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

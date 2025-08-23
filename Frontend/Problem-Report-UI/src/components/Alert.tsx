@@ -81,13 +81,7 @@ const Alert: React.FC<AlertProps> = ({
           </svg>
         );
       case "error":
-        return (
-          <img
-            src="/error.svg"
-            alt="Error"
-            className={`${iconClass}`}
-          />
-        );
+        return <img src="/error.svg" alt="Error" className={`${iconClass}`} />;
       case "warning":
         return (
           <svg

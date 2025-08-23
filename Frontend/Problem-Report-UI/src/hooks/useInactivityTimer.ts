@@ -1,8 +1,8 @@
 import { useEffect, useCallback, useRef } from "react";
 import { logout, isLoggedIn } from "../utils/auth";
 
-const INACTIVITY_TIMEOUT = 300000; // 5 minutes in milliseconds
-const WARNING_TIMEOUT = 240000; // 4 minutes - show warning 1 minute before logout
+const INACTIVITY_TIMEOUT = 300000; // 5 minutes
+const WARNING_TIMEOUT = 240000; // 4 minutes - 1 minute before logout
 
 export const useInactivityTimer = () => {
   const timeoutRef = useRef<number | null>(null);

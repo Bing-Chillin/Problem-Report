@@ -122,7 +122,7 @@ function App() {
     }
   };
 
-  // Change report status to specific value
+  // Change report status
 
   const changeStatus = async (report: Report, newStatus: string) => {
     try {
@@ -183,7 +183,6 @@ function App() {
       const response = (error as any)?.response;
 
       if (response?.status === 422) {
-        // Validation errors
         const errors = response?.data?.errors;
         if (errors) {
           const errorMessages = Object.values(errors).flat().join("\n");
@@ -216,7 +215,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        
+
         {/* Protected routes that require authentication */}
         <Route
           path="/"

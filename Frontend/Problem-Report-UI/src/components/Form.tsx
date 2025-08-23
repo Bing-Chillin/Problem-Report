@@ -39,7 +39,6 @@ export default function Form({
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    // Validate
     if (!text || subsystem === "None") {
       showAlert("error", "Tölts ki minden mezőt!");
       return;
@@ -133,10 +132,9 @@ export default function Form({
                   "error",
                   "A fájl mérete túl nagy! Maximum 2MB engedélyezett.",
                 );
-                e.target.value = ""; // Clear the input
+                e.target.value = "";
                 return;
               }
-              // Validate file type
               const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
               if (!allowedTypes.includes(selectedFile.type)) {
                 showAlert("error", "Csak JPG és PNG fájlok engedélyezettek!");
@@ -163,7 +161,6 @@ export default function Form({
                 type="button"
                 onClick={() => {
                   setFile(null);
-                  // Clear the file input
                   const fileInput = document.getElementById(
                     "file-upload",
                   ) as HTMLInputElement;

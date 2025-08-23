@@ -52,6 +52,8 @@ function ReportList({
 }: ReportListProps) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [imageLoading, setImageLoading] = useState<boolean>(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [detailModalImage, setDetailModalImage] = useState<string | null>(null);
 
   const handleStatusChange = (report: Report, newStatus: string) => {
     if (onStatusChange) {
@@ -124,6 +126,55 @@ function ReportList({
     setSelectedImage(null);
   };
 
+  const openDetailModal = async (report: Report) => {
+    setSelectedReport(report);
+
+    if (report.imagePath) {
+      setImageLoading(true);
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setDetailModalImage(null);
+          return;
+        }
+
+        let imageEndpoint;
+        if (canViewAllReports()) {
+          imageEndpoint = `http://localhost:8000/api/reports/${report.id}/image`;
+        } else {
+          imageEndpoint = `http://localhost:8000/api/my-reports/${report.id}/image`;
+        }
+
+        const response = await fetch(imageEndpoint, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          setDetailModalImage(imageUrl);
+        } else {
+          setDetailModalImage(null);
+        }
+      } catch (error) {
+        console.error("Error loading detail modal image:", error);
+        setDetailModalImage(null);
+      } finally {
+        setImageLoading(false);
+      }
+    }
+  };
+
+  const closeDetailModal = () => {
+    if (detailModalImage) {
+      URL.revokeObjectURL(detailModalImage);
+    }
+    setSelectedReport(null);
+    setDetailModalImage(null);
+  };
+
   return (
     <>
       {reports.length === 0 ? (
@@ -145,7 +196,8 @@ function ReportList({
           {reports.map((report) => (
             <li
               key={report.id}
-              className="flex justify-between gap-x-6 py-5 items-center border-b"
+              className="flex justify-between gap-x-6 py-5 items-center border-b hover:bg-gray-50 transition-colors cursor-pointer"
+              onClick={() => openDetailModal(report)}
             >
               {/* Left - Subsystem, Sender, Date */}
               <div className="flex flex-col text-sm text-gray-700 w-1/4">
@@ -166,7 +218,10 @@ function ReportList({
                 {report.imagePath && (
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleImageClick(report.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleImageClick(report.id);
+                      }}
                       className="text-blue-500 hover:text-blue-700 text-xs underline text-left flex items-center gap-1"
                       disabled={imageLoading}
                     >
@@ -180,7 +235,10 @@ function ReportList({
               </div>
 
               {/* Right - Status & Delete */}
-              <div className="flex flex-col items-end w-1/4 gap-y-2">
+              <div
+                className="flex flex-col items-end w-1/4 gap-y-2"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {canModifyReportStatus() ? (
                   <div className="relative">
                     <select
@@ -215,7 +273,10 @@ function ReportList({
 
                 {canDeleteReports() && (
                   <button
-                    onClick={() => onDelete(report)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(report);
+                    }}
                     className="text-red-500 hover:bg-red-500 hover:text-white rounded-full px-2 py-1 border border-red-500 text-xs"
                   >
                     Törlés
@@ -225,6 +286,226 @@ function ReportList({
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Detailed Report Modal */}
+      {selectedReport && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          onClick={closeDetailModal}
+        >
+          <div
+            className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex justify-between items-center p-4 border-b bg-gradient-to-r from-[#236A75] to-[#0E3F47]">
+              <div className="text-white">
+                <h2 className="text-2xl font-bold">Bejelentés részletei</h2>
+                <p className="text-blue-100">#{selectedReport.id}</p>
+              </div>
+              <button
+                onClick={closeDetailModal}
+                className="text-white hover:text-gray-200 text-3xl font-bold w-10 h-10 flex items-center justify-center rounded-full hover:bg-white hover:bg-opacity-20 transition-all"
+                aria-label="Bezárás"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 max-h-[80vh] overflow-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Report Details - left */}
+                <div className="space-y-6">
+                  {/* Basic Info */}
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <span className="bg-[#236A75] text-white p-2 rounded-full mr-3">
+                        📋
+                      </span>
+                      Alapadatok
+                    </h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-700">
+                          Bejelentő:
+                        </span>
+                        <span className="text-gray-900">
+                          {selectedReport.name || "Ismeretlen felhasználó"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-700">
+                          Email:
+                        </span>
+                        <span className="text-gray-900">
+                          {selectedReport.email}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-700">
+                          Alrendszer:
+                        </span>
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                          {subsystemLabels[selectedReport.subsystem] ??
+                            selectedReport.subsystem}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-medium text-gray-700">
+                          Dátum:
+                        </span>
+                        <span className="text-gray-900">
+                          {new Date(selectedReport.date).toLocaleString(
+                            "hu-HU",
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-gray-700">
+                          Státusz:
+                        </span>
+                        <span
+                          className={`px-3 py-1 rounded-full text-white text-sm font-medium ${statusColors[selectedReport.status] || "bg-gray-500"}`}
+                        >
+                          {statusLabels[selectedReport.status] ||
+                            selectedReport.status}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                      <span className="bg-[#236A75] text-white p-2 rounded-full mr-3">
+                        📝
+                      </span>
+                      Leírás
+                    </h3>
+                    <div className="bg-gray-50 p-4 rounded border-l-4 border-[#236A75]">
+                      <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                        {selectedReport.text}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Image */}
+                <div className="space-y-6">
+                  {selectedReport.imagePath ? (
+                    <div className="bg-white border border-gray-200 p-4 rounded-lg">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <span className="bg-[#236A75] text-white p-2 rounded-full mr-3">
+                          📷
+                        </span>
+                        Mellékelt kép
+                      </h3>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        {imageLoading ? (
+                          <div className="flex items-center justify-center h-64">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#236A75]"></div>
+                            <span className="ml-3 text-gray-500">
+                              Kép betöltése...
+                            </span>
+                          </div>
+                        ) : detailModalImage ? (
+                          <div className="relative">
+                            <img
+                              src={detailModalImage}
+                              alt="Report attachment"
+                              className="max-w-full h-auto object-contain mx-auto rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity"
+                              style={{ maxHeight: "400px" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedImage(detailModalImage);
+                              }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = "none";
+                                const errorDiv = document.createElement("div");
+                                errorDiv.className =
+                                  "text-red-500 text-center p-8";
+                                errorDiv.textContent = "A kép nem tölthető be.";
+                                target.parentNode?.appendChild(errorDiv);
+                              }}
+                            />
+                            <div className="mt-2 text-xs text-gray-500 text-center">
+                              Fájltípus:{" "}
+                              {selectedReport.imageType?.toUpperCase()}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center p-8 text-gray-500">
+                            <span className="text-4xl mb-2 block">🚫</span>A kép
+                            nem tölthető be
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 border-2 border-dashed border-gray-300 p-8 rounded-lg text-center">
+                      <span className="text-4xl text-gray-400 mb-2 block">
+                        📷
+                      </span>
+                      <p className="text-gray-500">Nincs mellékelt kép</p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="bg-white border border-gray-200 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                      <span className="bg-[#236A75] text-white p-2 rounded-full mr-3">
+                        ⚡
+                      </span>
+                      Műveletek
+                    </h3>
+                    <div className="space-y-3">
+                      {canModifyReportStatus() && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Státusz módosítása:
+                          </label>
+                          <select
+                            value={selectedReport.status}
+                            onChange={(e) => {
+                              handleStatusChange(
+                                selectedReport,
+                                e.target.value,
+                              );
+                              setSelectedReport({
+                                ...selectedReport,
+                                status: e.target.value,
+                              });
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#236A75] focus:border-[#236A75]"
+                          >
+                            <option value="nyitott">Nyitott</option>
+                            <option value="folyamatban">Folyamatban</option>
+                            <option value="lezárt">Lezárt</option>
+                          </select>
+                        </div>
+                      )}
+
+                      {canDeleteReports() && (
+                        <button
+                          onClick={() => {
+                            closeDetailModal();
+                            onDelete(selectedReport);
+                          }}
+                          className="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg transition-colors font-medium flex items-center justify-center"
+                        >
+                          🗑️ Bejelentés törlése
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Image Modal */}
