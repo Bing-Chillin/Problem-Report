@@ -185,14 +185,16 @@ function ReportList({
                   <div className="relative">
                     <select
                       value={report.status}
-                      onChange={(e) => handleStatusChange(report, e.target.value)}
+                      onChange={(e) =>
+                        handleStatusChange(report, e.target.value)
+                      }
                       className={`px-3 py-1 rounded-md text-xs font-medium text-white border-none outline-none appearance-none pr-8
                         ${statusColors[report.status] || "bg-gray-500"}`}
                       style={{
                         backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                        backgroundPosition: 'right 0.5rem center',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundSize: '1rem 1rem'
+                        backgroundPosition: "right 0.5rem center",
+                        backgroundRepeat: "no-repeat",
+                        backgroundSize: "1rem 1rem",
                       }}
                     >
                       <option value="nyitott">Nyitott</option>

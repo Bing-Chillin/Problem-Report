@@ -24,23 +24,6 @@ export default function RegisterPage() {
 
   const navigate = useNavigate();
 
-  const translateErrorMessage = (message: string): string => {
-    const translations: Record<string, string> = {
-      'email_required': 'Email cím megadása kötelező',
-      'email_invalid': 'Érvényes email címet adj meg',
-      'email_exists': 'Ez az email cím már regisztrálva van',
-      'password_required': 'Jelszó megadása kötelező',
-      'password_too_short': 'A jelszó túl rövid',
-      'first_name_required': 'Keresztnév megadása kötelező',
-      'first_name_too_long': 'A keresztnév túl hosszú',
-      'last_name_required': 'Vezetéknév megadása kötelező',
-      'last_name_too_long': 'A vezetéknév túl hosszú',
-      'username_exists': 'Ez a felhasználónév már foglalt',
-      'username_too_long': 'A felhasználónév túl hosszú',
-    };
-    return translations[message] || message;
-  };
-
   const showAlert = (type: AlertType, message: string) => {
     setAlert({ show: true, type, message });
   };
@@ -73,45 +56,160 @@ export default function RegisterPage() {
       const responseText = await response.text();
 
       if (response.ok) {
-        showAlert("success", "Sikeres regisztráció! Átirányítás a bejelentkezéshez...");
+        showAlert(
+          "success",
+          "Sikeres regisztráció! Átirányítás a bejelentkezéshez...",
+        );
         setTimeout(() => {
           navigate("/login");
         }, 2000);
       } else {
         let errorMessage = "Regisztráció sikertelen!";
-        
+
         try {
           const errorData = JSON.parse(responseText);
-          
+
           switch (response.status) {
             case 422:
               if (errorData.errors) {
                 const fieldErrors: string[] = [];
-                
-                Object.entries(errorData.errors).forEach(([messages]) => {
-                  const messageArray = Array.isArray(messages) ? messages : [messages];
-                  messageArray.forEach((msg: string) => {
-                    const translatedMessage = translateErrorMessage(msg);
-                    fieldErrors.push(translatedMessage);
-                  });
-                });
-                
-                errorMessage = fieldErrors.length > 0 ? fieldErrors.join('') : "Kérjük, töltsd ki helyesen az összes mezőt!";
+
+                Object.entries(errorData.errors).forEach(
+                  ([field, messages]) => {
+                    const messageArray = Array.isArray(messages)
+                      ? messages
+                      : [messages];
+                    console.log(`Field: ${field}, Messages:`, messageArray);
+
+                    messageArray.forEach((msg: string) => {
+                      const msgLower = msg.toLowerCase();
+
+                      if (
+                        field === "email" &&
+                        (msgLower.includes("unique") ||
+                          msgLower.includes("taken") ||
+                          msgLower.includes("already") ||
+                          msgLower.includes("exists"))
+                      ) {
+                        fieldErrors.push(
+                          "Ez az email cím már regisztrálva van!",
+                        );
+                      } else if (
+                        field === "username" &&
+                        (msgLower.includes("unique") ||
+                          msgLower.includes("taken") ||
+                          msgLower.includes("already") ||
+                          msgLower.includes("exists"))
+                      ) {
+                        fieldErrors.push("Ez a felhasználónév már foglalt!");
+                      } else if (
+                        field === "email" &&
+                        (msgLower.includes("email") ||
+                          msgLower.includes("valid") ||
+                          msgLower.includes("format"))
+                      ) {
+                        fieldErrors.push(
+                          "Kérjük, adj meg egy érvényes email címet!",
+                        );
+                      } else if (
+                        msgLower.includes("required") ||
+                        msgLower.includes("field is required")
+                      ) {
+                        const fieldName =
+                          field === "first_name"
+                            ? "Keresztnév"
+                            : field === "last_name"
+                              ? "Vezetéknév"
+                              : field === "username"
+                                ? "Felhasználónév"
+                                : field === "email"
+                                  ? "Email"
+                                  : field === "password"
+                                    ? "Jelszó"
+                                    : field;
+                        fieldErrors.push(`${fieldName} kitöltése kötelező!`);
+                      } else if (
+                        msgLower.includes("min") ||
+                        msgLower.includes("too_short") ||
+                        msgLower.includes("password_too_short") ||
+                        msgLower.includes("short")
+                      ) {
+                        fieldErrors.push(
+                          `A jelszó túl rövid! Minimum 3 karakter szükséges.`,
+                        );
+                      } else if (
+                        msgLower.includes("max") ||
+                        msgLower.includes("too_long") ||
+                        msgLower.includes("long")
+                      ) {
+                        const fieldName =
+                          field === "first_name"
+                            ? "keresztnév"
+                            : field === "last_name"
+                              ? "vezetéknév"
+                              : field === "username"
+                                ? "felhasználónév"
+                                : field;
+                        fieldErrors.push(`A ${fieldName} túl hosszú!`);
+                      } else if (
+                        msgLower.includes("confirmed") ||
+                        msgLower.includes("confirmation") ||
+                        msgLower.includes("match")
+                      ) {
+                        fieldErrors.push("A jelszavak nem egyeznek!");
+                      } else {
+                        const fieldName =
+                          field === "first_name"
+                            ? "Keresztnév"
+                            : field === "last_name"
+                              ? "Vezetéknév"
+                              : field === "username"
+                                ? "Felhasználónév"
+                                : field === "email"
+                                  ? "Email"
+                                  : field === "password"
+                                    ? "Jelszó"
+                                    : field;
+                        fieldErrors.push(`${fieldName}: ${msg}`);
+                      }
+                    });
+                  },
+                );
+
+                errorMessage =
+                  fieldErrors.length > 0
+                    ? fieldErrors.join("\n")
+                    : "Kérjük, töltsd ki helyesen az összes mezőt!";
               } else {
                 errorMessage = "Kérjük, töltsd ki helyesen az összes mezőt!";
               }
               break;
-              
-            case 429:
-              // Too many requests
-              errorMessage = "Túl sok regisztrációs kísérlet! Kérjük, várj egy kicsit.";
+
+            case 409:
+              if (
+                errorData.message &&
+                errorData.message.toLowerCase().includes("email")
+              ) {
+                errorMessage = "Ez az email cím már regisztrálva van!";
+              } else if (
+                errorData.message &&
+                errorData.message.toLowerCase().includes("username")
+              ) {
+                errorMessage = "Ez a felhasználónév már foglalt!";
+              } else {
+                errorMessage = "A felhasználó már létezik!";
+              }
               break;
-              
+
+            case 429:
+              errorMessage =
+                "Túl sok regisztrációs kísérlet! Kérjük, várj egy kicsit.";
+              break;
+
             case 500:
-              // Server error
               errorMessage = "Szerverhiba! Kérjük, próbáld újra később.";
               break;
-              
+
             default:
               if (errorData.message) {
                 errorMessage = `Hiba: ${errorData.message}`;
@@ -119,20 +217,29 @@ export default function RegisterPage() {
                 errorMessage = "Ismeretlen hiba történt a regisztráció során!";
               }
           }
-          
+
           showAlert("error", errorMessage);
         } catch {
           if (response.status === 422) {
-            showAlert("error", "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.");
+            showAlert(
+              "error",
+              "Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.",
+            );
           } else if (response.status >= 500) {
             showAlert("error", "Szerverhiba! Kérjük, próbáld újra később.");
           } else {
-            showAlert("error", "Regisztráció sikertelen! Kérjük, próbáld újra.");
+            showAlert(
+              "error",
+              "Regisztráció sikertelen! Kérjük, próbáld újra.",
+            );
           }
         }
       }
     } catch (error) {
-      showAlert("error", "Hálózati hiba! Kérjük, ellenőrizd az internetkapcsolatot és próbáld újra.");
+      showAlert(
+        "error",
+        "Hálózati hiba! Kérjük, ellenőrizd az internetkapcsolatot és próbáld újra.",
+      );
     }
   };
 
@@ -158,7 +265,7 @@ export default function RegisterPage() {
             />
           </div>
         )}
-        
+
         <form onSubmit={handleRegister}>
           <h2 className="text-2xl font-bold mb-4">Regisztráció</h2>
           {["familyName", "givenName", "userName", "email", "password"].map(
@@ -186,4 +293,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-

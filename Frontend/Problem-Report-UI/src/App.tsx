@@ -19,7 +19,7 @@ function App() {
   const [reports, setReports] = useState<Report[]>([]);
   const [modified, setModified] = useState(false);
   const navigate = useNavigate();
-  
+
   useInactivityTimer();
 
   useEffect(() => {
@@ -90,7 +90,7 @@ function App() {
 
   const toggleStatus = async (report: Report) => {
     let updatedStatus: string;
-    
+
     switch (report.status) {
       case "nyitott":
         updatedStatus = "folyamatban";
@@ -134,9 +134,7 @@ function App() {
       });
 
       setReports((prev) =>
-        prev.map((r) =>
-          r.id === report.id ? { ...r, status: newStatus } : r,
-        ),
+        prev.map((r) => (r.id === report.id ? { ...r, status: newStatus } : r)),
       );
     } catch (err) {
       console.error("Failed to update status:", err);
@@ -184,7 +182,7 @@ function App() {
     } catch (error) {
       console.error("Failed to create report:", error);
       const response = (error as any)?.response;
-      
+
       if (response?.status === 422) {
         // Validation errors
         const errors = response?.data?.errors;
@@ -195,11 +193,15 @@ function App() {
           alert("Érvénytelen adatok! Kérjük, ellenőrizd a mezőket.");
         }
       } else if (response?.status === 401) {
-        alert("Nincs jogosultságod bejelentés létrehozásához! Kérjük, jelentkezz be újra.");
+        alert(
+          "Nincs jogosultságod bejelentés létrehozásához! Kérjük, jelentkezz be újra.",
+        );
       } else if (response?.status === 413) {
         alert("A feltöltött fájl túl nagy! Kérjük, válassz kisebb képet.");
       } else if (response?.status === 415) {
-        alert("Nem támogatott fájlformátum! Csak JPG és PNG képeket fogadunk el.");
+        alert(
+          "Nem támogatott fájlformátum! Csak JPG és PNG képeket fogadunk el.",
+        );
       } else if (response?.status >= 500) {
         alert("Szerverhiba! Kérjük, próbáld újra később.");
       } else if (response?.data?.message) {

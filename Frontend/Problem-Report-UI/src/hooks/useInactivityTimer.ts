@@ -1,5 +1,5 @@
-import { useEffect, useCallback, useRef } from 'react';
-import { logout, isLoggedIn } from '../utils/auth';
+import { useEffect, useCallback, useRef } from "react";
+import { logout, isLoggedIn } from "../utils/auth";
 
 const INACTIVITY_TIMEOUT = 300000; // 5 minutes in milliseconds
 const WARNING_TIMEOUT = 240000; // 4 minutes - show warning 1 minute before logout
@@ -28,30 +28,30 @@ export const useInactivityTimer = () => {
 
     warningTimeoutRef.current = window.setTimeout(() => {
       const shouldContinue = confirm(
-        'Inaktivitás miatt hamarosan kijelentkezel. Szeretnéd folytatni a munkát?'
+        "Inaktivitás miatt hamarosan kijelentkezel. Szeretnéd folytatni a munkát?",
       );
-      
+
       if (shouldContinue) {
         resetTimer();
       }
     }, WARNING_TIMEOUT);
 
     timeoutRef.current = window.setTimeout(() => {
-      console.log('User logged out due to inactivity');
-      alert('A munkamenet lejárt. Kérjük, jelentkezz be újra.');
+      console.log("User logged out due to inactivity");
+      alert("A munkamenet lejárt. Kérjük, jelentkezz be újra.");
       logout();
     }, INACTIVITY_TIMEOUT);
   }, [clearTimers]);
 
   useEffect(() => {
     const events = [
-      'mousedown',
-      'mousemove',
-      'keypress',
-      'scroll',
-      'touchstart',
-      'click',
-      'keydown',
+      "mousedown",
+      "mousemove",
+      "keypress",
+      "scroll",
+      "touchstart",
+      "click",
+      "keydown",
     ];
 
     const handleUserActivity = () => {
@@ -72,12 +72,12 @@ export const useInactivityTimer = () => {
       }
     };
 
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, handleUserActivity, true);
     });
 
-    window.addEventListener('popstate', handleRouteChange);
-    
+    window.addEventListener("popstate", handleRouteChange);
+
     // Check login status every 30 seconds
     const loginCheckInterval = setInterval(checkLoginStatus, 30000);
 
@@ -87,10 +87,10 @@ export const useInactivityTimer = () => {
 
     // Cleanup
     return () => {
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleUserActivity, true);
       });
-      window.removeEventListener('popstate', handleRouteChange);
+      window.removeEventListener("popstate", handleRouteChange);
       clearInterval(loginCheckInterval);
       clearTimers();
     };

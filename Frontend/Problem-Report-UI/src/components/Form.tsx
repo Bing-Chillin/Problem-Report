@@ -129,12 +129,15 @@ export default function Form({
             const selectedFile = e.target.files?.[0] || null;
             if (selectedFile) {
               if (selectedFile.size > 2 * 1024 * 1024) {
-                showAlert("error", "A fájl mérete túl nagy! Maximum 2MB engedélyezett.");
+                showAlert(
+                  "error",
+                  "A fájl mérete túl nagy! Maximum 2MB engedélyezett.",
+                );
                 e.target.value = ""; // Clear the input
                 return;
               }
               // Validate file type
-              const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+              const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
               if (!allowedTypes.includes(selectedFile.type)) {
                 showAlert("error", "Csak JPG és PNG fájlok engedélyezettek!");
                 e.target.value = ""; // Clear the input
@@ -161,8 +164,10 @@ export default function Form({
                 onClick={() => {
                   setFile(null);
                   // Clear the file input
-                  const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-                  if (fileInput) fileInput.value = '';
+                  const fileInput = document.getElementById(
+                    "file-upload",
+                  ) as HTMLInputElement;
+                  if (fileInput) fileInput.value = "";
                 }}
                 className="text-red-500 hover:text-red-700 text-sm"
               >
