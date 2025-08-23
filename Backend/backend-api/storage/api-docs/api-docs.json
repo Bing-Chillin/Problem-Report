@@ -2,7 +2,7 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Report API",
-        "description": "API for managing reports",
+        "description": "API for managing problem reports with image attachments. Note: For file uploads, Postman is recommended over Swagger UI due to better multipart/form-data support.",
         "version": "1.0"
     },
     "paths": {
@@ -166,7 +166,7 @@
                 "tags": [
                     "Reports"
                 ],
-                "summary": "Get a list of all reports  (Admin/Developer only)",
+                "summary": "Get a list of all reports (Admin/Developer/Dispatcher only)",
                 "operationId": "42398321972bc3074eef76718e0fd9dc",
                 "responses": {
                     "200": {
@@ -183,19 +183,11 @@
                                             },
                                             "subsystem": {
                                                 "type": "string",
-                                                "example": "ProblemReort"
+                                                "example": "ProblemReport"
                                             },
                                             "text": {
                                                 "type": "string",
                                                 "example": "Something's broken."
-                                            },
-                                            "image_path": {
-                                                "type": "string",
-                                                "example": "/images/problem.jpg"
-                                            },
-                                            "image_type": {
-                                                "type": "string",
-                                                "example": "jpg"
                                             },
                                             "date": {
                                                 "type": "string",
@@ -213,6 +205,30 @@
                                             "name": {
                                                 "type": "string",
                                                 "example": "Kovács János"
+                                            },
+                                            "images": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "filename": {
+                                                            "type": "string",
+                                                            "example": "1692697800_abc123.jpg"
+                                                        },
+                                                        "type": {
+                                                            "type": "string",
+                                                            "example": "jpg"
+                                                        },
+                                                        "order_index": {
+                                                            "type": "integer",
+                                                            "example": 0
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
                                             }
                                         },
                                         "type": "object"
@@ -225,7 +241,7 @@
                         "description": "Unauthorized"
                     },
                     "403": {
-                        "description": "Forbidden - Admin/Developer role required"
+                        "description": "Forbidden - Admin/Developer/Dispatcher role required"
                     }
                 },
                 "security": [
@@ -235,34 +251,52 @@
                 ]
             },
             "post": {
-                "summary": "Create new report  (All authenticated users)",
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Create new report (All authenticated users)",
+                "description": "Creates a new problem report with optional image attachments. For testing file uploads, use Postman instead of Swagger UI. In Postman: use form-data, add 'images[]' as key (select 'File' type), and attach multiple files with the same key name.",
                 "operationId": "318de4ef8123b483320dc9dbb45b6a43",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "multipart/form-data": {
                             "schema": {
+                                "required": [
+                                    "subsystem",
+                                    "text",
+                                    "status"
+                                ],
                                 "properties": {
                                     "subsystem": {
+                                        "description": "The subsystem where the problem occurred",
                                         "type": "string",
                                         "example": "ProblemReport"
                                     },
                                     "text": {
+                                        "description": "Description of the problem",
                                         "type": "string",
+                                        "maxLength": 1000,
                                         "example": "Something is broken"
                                     },
                                     "status": {
+                                        "description": "Status of the report",
                                         "type": "string",
                                         "enum": [
                                             "nyitott",
-                                            "lezárt"
+                                            "lezárt",
+                                            "folyamatban"
                                         ],
                                         "example": "nyitott"
                                     },
-                                    "image": {
-                                        "description": "Image file (only JPG and PNG allowed, max 2MB)",
-                                        "type": "string",
-                                        "format": "binary"
+                                    "images[]": {
+                                        "description": "Array of image files (Use Postman: form-data with key 'images[]', select File type, max 5 files, JPG/PNG, max 2MB each)",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        },
+                                        "maxItems": 5
                                     }
                                 },
                                 "type": "object"
@@ -276,7 +310,82 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Report"
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "subsystem": {
+                                            "type": "string",
+                                            "example": "ProblemReport"
+                                        },
+                                        "text": {
+                                            "type": "string",
+                                            "example": "Something is broken"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "nyitott"
+                                        },
+                                        "date": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2025-08-22T12:00:00Z"
+                                        },
+                                        "creator_id": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2025-08-22T12:00:00Z"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2025-08-22T12:00:00Z"
+                                        },
+                                        "images": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "report_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "filename": {
+                                                        "type": "string",
+                                                        "example": "1692697800_abc123.jpg"
+                                                    },
+                                                    "type": {
+                                                        "type": "string",
+                                                        "example": "jpg"
+                                                    },
+                                                    "order_index": {
+                                                        "type": "integer",
+                                                        "example": 0
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-08-22T12:00:00Z"
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-08-22T12:00:00Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -295,7 +404,46 @@
                                             "example": "The given data was invalid."
                                         },
                                         "errors": {
+                                            "properties": {
+                                                "subsystem": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "The subsystem field is required."
+                                                    }
+                                                },
+                                                "images": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Images must be provided as an array."
+                                                    }
+                                                },
+                                                "images.0": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string",
+                                                        "example": "Each image size cannot exceed 2MB."
+                                                    }
+                                                }
+                                            },
                                             "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Server error during report creation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Failed to create report"
                                         }
                                     },
                                     "type": "object"
@@ -316,7 +464,7 @@
                 "tags": [
                     "Reports"
                 ],
-                "summary": "Get report image (Admin/Developer only)",
+                "summary": "Get report image (Admin/Developer/Dispatcher only)",
                 "operationId": "eea9b4ef947b1eecc159622b5e91978c",
                 "parameters": [
                     {
@@ -326,6 +474,16 @@
                         "required": true,
                         "schema": {
                             "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "imageIndex",
+                        "in": "path",
+                        "description": "Index of the image (0-based, defaults to 0)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
                         }
                     }
                 ],
@@ -381,14 +539,6 @@
                                                 "type": "string",
                                                 "example": "Something's broken."
                                             },
-                                            "image_path": {
-                                                "type": "string",
-                                                "example": "/images/problem.jpg"
-                                            },
-                                            "image_type": {
-                                                "type": "string",
-                                                "example": "jpg"
-                                            },
                                             "date": {
                                                 "type": "string",
                                                 "format": "date-time",
@@ -397,6 +547,30 @@
                                             "status": {
                                                 "type": "string",
                                                 "example": "open"
+                                            },
+                                            "images": {
+                                                "type": "array",
+                                                "items": {
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "filename": {
+                                                            "type": "string",
+                                                            "example": "1692697800_abc123.jpg"
+                                                        },
+                                                        "type": {
+                                                            "type": "string",
+                                                            "example": "jpg"
+                                                        },
+                                                        "order_index": {
+                                                            "type": "integer",
+                                                            "example": 0
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
                                             }
                                         },
                                         "type": "object"
@@ -432,6 +606,16 @@
                         "schema": {
                             "type": "integer"
                         }
+                    },
+                    {
+                        "name": "imageIndex",
+                        "in": "path",
+                        "description": "Index of the image (0-based, defaults to 0)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
                     }
                 ],
                 "responses": {
@@ -442,7 +626,10 @@
                         }
                     },
                     "404": {
-                        "description": "Image not found or report not owned by user"
+                        "description": "Image not found or report not found"
+                    },
+                    "403": {
+                        "description": "Forbidden - Report not owned by user"
                     },
                     "401": {
                         "description": "Unauthorized"
@@ -457,7 +644,10 @@
         },
         "/api/reports/{id}": {
             "put": {
-                "summary": "Update the specified report (Admin/Developer only)",
+                "tags": [
+                    "Reports"
+                ],
+                "summary": "Update the specified report (Admin/Developer/Dispatcher only)",
                 "operationId": "53aec2092fb1277fa3d06d65d59fa307",
                 "parameters": [
                     {
@@ -497,7 +687,44 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Report"
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "subsystem": {
+                                            "type": "string",
+                                            "example": "ProblemReport"
+                                        },
+                                        "text": {
+                                            "type": "string",
+                                            "example": "Updated problem description"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "folyamatban"
+                                        },
+                                        "date": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2025-08-22T12:00:00Z"
+                                        },
+                                        "creator_id": {
+                                            "type": "integer",
+                                            "example": 3
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2025-08-22T12:00:00Z"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2025-08-22T12:05:00Z"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -509,7 +736,23 @@
                         "description": "Unauthorized"
                     },
                     "403": {
-                        "description": "Forbidden - Admin/Developer role required"
+                        "description": "Forbidden - Admin/Developer/Dispatcher role required"
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -538,13 +781,12 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "description": "Number of reports deleted (0 if report was not found, 1 if deleted)",
                                     "type": "integer"
-                                }
+                                },
+                                "example": 1
                             }
                         }
-                    },
-                    "404": {
-                        "description": "Report not found"
                     },
                     "401": {
                         "description": "Unauthorized"
