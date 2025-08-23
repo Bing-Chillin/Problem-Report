@@ -52,7 +52,6 @@ function App() {
         }));
 
         setReports(mappedReports);
-        console.log("Fetched reports:", mappedReports);
       } catch (error) {
         console.error("Failed to fetch reports:", error);
       }
@@ -214,26 +213,55 @@ function App() {
 
   return (
     <>
-      <Navbar />
       <Routes>
-        <Route path="/" element={<Frontpage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        
+        {/* Protected routes that require authentication */}
+        <Route
+          path="/"
+          element={
+            isLoggedIn() ? (
+              <>
+                <Navbar />
+                <Frontpage />
+              </>
+            ) : (
+              <LoginPage />
+            )
+          }
+        />
         <Route
           path="/form"
-          element={<Form onCreate={(data) => createReport(data)} />}
+          element={
+            isLoggedIn() ? (
+              <>
+                <Navbar />
+                <Form onCreate={(data) => createReport(data)} />
+              </>
+            ) : (
+              <LoginPage />
+            )
+          }
         />
         <Route
           path="/reports"
           element={
-            <ReportList
-              reports={reports}
-              onDelete={deleteReport}
-              onToggleStatus={toggleStatus}
-              onStatusChange={changeStatus}
-            />
+            isLoggedIn() ? (
+              <>
+                <Navbar />
+                <ReportList
+                  reports={reports}
+                  onDelete={deleteReport}
+                  onToggleStatus={toggleStatus}
+                  onStatusChange={changeStatus}
+                />
+              </>
+            ) : (
+              <LoginPage />
+            )
           }
         />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </>
   );

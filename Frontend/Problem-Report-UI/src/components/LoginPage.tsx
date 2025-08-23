@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Alert from "./Alert";
 import type { AlertType } from "./Alert";
@@ -6,6 +6,7 @@ import type { AlertType } from "./Alert";
 export default function LoginPage() {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [alert, setAlert] = useState<{
     show: boolean;
     type: AlertType;
@@ -16,6 +17,32 @@ export default function LoginPage() {
     message: "",
   });
   const navigate = useNavigate();
+
+  const backgroundImages = [
+    "/eger.jpg",
+    "/eger2.jpg", 
+    "/eger3.jpg"
+  ];
+
+  // Debug: Log initial state
+  // useEffect(() => {
+  //   console.log("LoginPage mounted");
+  //   console.log("Background images:", backgroundImages);
+  //   console.log("Initial currentImageIndex:", currentImageIndex);
+  // }, []);
+
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => {
+        const newIndex = (prevIndex + 1) % backgroundImages.length;
+        console.log(`Carousel changing from ${prevIndex} to ${newIndex}`);
+        return newIndex;
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [backgroundImages.length]);
 
   const translateErrorMessage = (message: string): string => {
     const translations: Record<string, string> = {
@@ -64,7 +91,6 @@ export default function LoginPage() {
           const errorData = JSON.parse(responseText);
           switch (response.status) {
             case 401:
-              // Unauthorized - check for specific error types
               if (errorData.error) {
                 errorMessage = translateErrorMessage(errorData.error);
               } else if (errorData.error && errorData.error.toLowerCase().includes('credential')) {
@@ -138,45 +164,124 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-50">
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-        {alert.show && (
-          <div className="mb-4">
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={hideAlert}
-              autoClose={true}
-              autoCloseDelay={alert.type === "success" ? 2000 : 5000}
+    <div className="relative min-h-screen overflow-hidden bg-gray-900">
+      {/* Background Carousel */}
+      <div className="absolute inset-0 z-0">
+        {backgroundImages.map((image, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentImageIndex ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <img
+              src={image}
+              alt={`Background ${index + 1}`}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                console.log(`Failed to load image: ${image}`);
+                e.currentTarget.style.display = 'none';
+              }}
+              onLoad={() => console.log(`Loaded image: ${image}`)}
             />
           </div>
-        )}
-        
-        <form onSubmit={handleLogin}>
-          <h2 className="text-2xl font-bold mb-4">Bejelentkezés</h2>
-          <input
-            type="text"
-            value={login}
-            onChange={(e) => setLogin(e.target.value)}
-            placeholder="Email vagy felhasználónév"
-            className="w-full mb-3 p-2 border rounded"
-            required
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Jelszó"
-            className="w-full mb-3 p-2 border rounded"
-            required
-          />
-          <button
-            type="submit"
-            className="w-full bg-[#236A75] text-white py-2 px-4 rounded hover:bg-[#0E3F47]"
-          >
-            Bejelentkezés
-          </button>
-        </form>
+        ))}
+      </div>
+
+      {/* Main Content */}
+      <div className="relative z-20 flex min-h-screen">
+        <div className="w-full max-w-md bg-white bg-opacity-95 backdrop-blur-sm shadow-2xl flex flex-col justify-center px-8 py-12">
+          <div className="mb-8 text-center">
+            <img
+              src="/logo-hu-HU.png"
+              alt="Logo"
+              className="h-22 mx-auto mb-6"
+            />
+            <p className="text-gray-600">
+              <b>Problémabejelentő rendszer</b>
+            </p>
+          </div>
+
+          {/* Alert */}
+          {alert.show && (
+            <div className="mb-6">
+              <Alert
+                type={alert.type}
+                message={alert.message}
+                onClose={hideAlert}
+                autoClose={true}
+                autoCloseDelay={alert.type === "success" ? 2000 : 5000}
+              />
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <input
+                id="login"
+                type="text"
+                value={login}
+                onChange={(e) => setLogin(e.target.value)}
+                placeholder="Email cím vagy felhasználónév"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#236A75] focus:border-[#236A75] transition-colors"
+                required
+              />
+            </div>
+
+            <div>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Jelszó"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#236A75] focus:border-[#236A75] transition-colors"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-[#236A75] text-white py-3 px-4 rounded-lg hover:bg-[#0E3F47] transition-colors font-medium"
+            >
+              Bejelentkezés
+            </button>
+          </form>
+
+          {/* Register Link */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600">
+              Még nincs fiókod?{" "}
+              <button
+                onClick={() => navigate("/register")}
+                className="text-[#236A75] hover:text-[#0E3F47] font-medium transition-colors"
+              >
+                Regisztrálj itt
+              </button>
+            </p>
+          </div>
+          {/* carousel dots */}
+          <div className="mt-8 flex justify-center space-x-3">
+            {backgroundImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  console.log(`Manually setting image index to: ${index}`);
+                  setCurrentImageIndex(index);
+                }}
+                className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                  index === currentImageIndex 
+                    ? 'bg-[#236A75] scale-110 shadow-lg' 
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Right side - just shows the background image */}
+        <div className="flex-1 hidden md:block" />
       </div>
     </div>
   );
