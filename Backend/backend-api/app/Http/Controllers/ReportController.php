@@ -442,30 +442,68 @@ class ReportController extends Controller
     /**
      * @OA\Delete(
      *     path="/api/reports/{id}",
-     *     summary="Delete the specified report (Admin only)",
+     *     summary="Delete a specific report and its images",
+     *     tags={"Reports"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="ID of report to delete",
+     *         description="ID of the report to delete",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="integer")
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Number of deleted records",
+     *         description="Report deleted successfully",
      *         @OA\JsonContent(
-     *             type="integer",
-     *             example=1,
-     *             description="Number of reports deleted (0 if report was not found, 1 if deleted)"
+     *             @OA\Property(property="message", type="string", example="Report deleted successfully")
      *         )
      *     ),
+     *     @OA\Response(response=404, description="Report not found"),
      *     @OA\Response(response=401, description="Unauthorized"),
-     *     @OA\Response(response=403, description="Forbidden - Admin role required")
+     *     @OA\Response(response=403, description="Forbidden")
      * )
      */
     public function destroy(string $id)
     {
-        return Report::destroy($id);
+        $report = $this->findReportOrFail($id);
+        
+        DB::beginTransaction();
+        
+        try {
+            // Delete image files from storage
+            foreach ($report->images as $image) {
+                $filePath = 'reports/' . $image->filename;
+                if (Storage::disk('local')->exists($filePath)) {
+                    Storage::disk('local')->delete($filePath);
+                    Log::info('Deleted image file', ['file' => $filePath]);
+                } else {
+                    Log::warning('Image file not found for deletion', ['file' => $filePath]);
+                }
+            }
+            
+            // Delete the report (this will also delete related images due to foreign key cascade)
+            $report->delete();
+            
+            DB::commit();
+            
+            Log::info('Report deleted successfully', ['report_id' => $id]);
+            
+            return response()->json(['message' => 'Report deleted successfully'], 200);
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            Log::error('Failed to delete report', [
+                'report_id' => $id,
+                'error' => $e->getMessage(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'Failed to delete report',
+                'message' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
     }
 }
