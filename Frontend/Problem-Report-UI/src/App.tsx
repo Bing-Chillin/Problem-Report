@@ -49,7 +49,6 @@ function App() {
           status: r.status,
           email: r.email || "",
           name: r.name ?? "Ismeretlen felhasználó",
-          // Legacy fields for backward compatibility
           imagePath: r.images && r.images.length > 0 ? r.images[0].url : null,
           imageType: r.images && r.images.length > 0 ? r.images[0].type : null,
         }));
