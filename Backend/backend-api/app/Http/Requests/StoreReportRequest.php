@@ -26,7 +26,8 @@ class StoreReportRequest extends FormRequest
             'subsystem' => 'required|string|max:255',
             'text' => 'required|string|max:1000',
             'status' => 'required|string|in:nyitott,lezárt,folyamatban',
-            'image' => 'nullable|image|mimes:jpeg,jpg,png|max:2048', // Only JPG and PNG, max 2MB
+            'images' => 'nullable|array|max:5', // Allow up to 5 images
+            'images.*' => 'nullable|image|mimes:jpeg,jpg,png|max:2048', // Each image: JPG/PNG, max 2MB, nullable to allow empty slots
         ];
     }
 
@@ -39,9 +40,11 @@ class StoreReportRequest extends FormRequest
             'subsystem.required' => 'The subsystem field is required.',
             'text.required' => 'The report description is required.',
             'status.in' => 'Status must be one of: nyitott, lezárt, folyamatban.',
-            'image.image' => 'The uploaded file must be an image.',
-            'image.mimes' => 'The image must be a JPG or PNG file.',
-            'image.max' => 'The image size cannot exceed 2MB.',
+            'images.array' => 'Images must be provided as an array.',
+            'images.max' => 'You can upload a maximum of 5 images.',
+            'images.*.image' => 'Each uploaded file must be an image.',
+            'images.*.mimes' => 'Each image must be a JPG or PNG file.',
+            'images.*.max' => 'Each image size cannot exceed 2MB.',
         ];
     }
 }

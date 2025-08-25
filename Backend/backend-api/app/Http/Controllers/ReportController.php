@@ -4,17 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Report;
+use App\Models\ReportImage;
 use Illuminate\Http\Request;
 use App\Http\Resources\ReportResource;
 use App\Http\Resources\UserReportResource;
 use App\Http\Requests\StoreReportRequest;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @OA\Info(
  *     title="Report API",
  *     version="1.0",
- *     description="API for managing reports"
+ *     description="API for managing problem reports with image attachments. Note: For file uploads, Postman is recommended over Swagger UI due to better multipart/form-data support."
  * )
  */
 
@@ -23,7 +26,7 @@ class ReportController extends Controller
     /**
      * @OA\Get(
      *     path="/api/reports",
-     *     summary="Get a list of all reports  (Admin/Developer only)",
+     *     summary="Get a list of all reports (Admin/Developer/Dispatcher only)",
      *     tags={"Reports"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
@@ -33,58 +36,34 @@ class ReportController extends Controller
      *             type="array",
      *             @OA\Items(
      *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="subsystem", type="string", example="ProblemReort"),
+     *                 @OA\Property(property="subsystem", type="string", example="ProblemReport"),
      *                 @OA\Property(property="text", type="string", example="Something's broken."),
-     *                 @OA\Property(property="image_path", type="string", example="/images/problem.jpg"),
-     *                 @OA\Property(property="image_type", type="string", example="jpg"),
      *                 @OA\Property(property="date", type="string", format="date-time", example="2025-08-01T10:30:00Z"),
      *                 @OA\Property(property="status", type="string", example="open"),
      *                 @OA\Property(property="email", type="string", example="janos@example.com"),
-     *                 @OA\Property(property="name", type="string", example="Kovács János")
+     *                 @OA\Property(property="name", type="string", example="Kovács János"),
+     *                 @OA\Property(
+     *                     property="images",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="filename", type="string", example="1692697800_abc123.jpg"),
+     *                         @OA\Property(property="type", type="string", example="jpg"),
+     *                         @OA\Property(property="order_index", type="integer", example=0)
+     *                     )
+     *                 )
      *             )
      *         )
      *     ),
      *     @OA\Response(response=401, description="Unauthorized"),
-     *     @OA\Response(response=403, description="Forbidden - Admin/Developer role required")
+     *     @OA\Response(response=403, description="Forbidden - Admin/Developer/Dispatcher role required")
      * )
      */
     public function index()
     {
-        $reports = Report::with('creator')->get();
+        $reports = Report::with(['creator', 'images'])->get();
 
         return ReportResource::collection($reports);
-    }
-
-    /**
-     * @OA\Get(
-     *     path="/api/reports/{id}/image",
-     *     summary="Get report image (Admin/Developer only)",
-     *     tags={"Reports"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         description="ID of report",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Image file",
-     *         @OA\MediaType(
-     *             mediaType="image/jpeg"
-     *         )
-     *     ),
-     *     @OA\Response(response=404, description="Image not found"),
-     *     @OA\Response(response=401, description="Unauthorized"),
-     *     @OA\Response(response=403, description="Forbidden")
-     * )
-     */
-    public function showImage(string $id)
-    {
-        $report = Report::findOrFail($id);
-
-        return $this->getReportImage($report);
     }
 
     /**
@@ -102,10 +81,18 @@ class ReportController extends Controller
      *                 @OA\Property(property="id", type="integer", example=1),
      *                 @OA\Property(property="subsystem", type="string", example="ProblemReport"),
      *                 @OA\Property(property="text", type="string", example="Something's broken."),
-     *                 @OA\Property(property="image_path", type="string", example="/images/problem.jpg"),
-     *                 @OA\Property(property="image_type", type="string", example="jpg"),
      *                 @OA\Property(property="date", type="string", format="date-time", example="2025-08-01T10:30:00Z"),
      *                 @OA\Property(property="status", type="string", example="open"),
+     *                 @OA\Property(
+     *                     property="images",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(property="id", type="integer", example=1),
+     *                         @OA\Property(property="filename", type="string", example="1692697800_abc123.jpg"),
+     *                         @OA\Property(property="type", type="string", example="jpg"),
+     *                         @OA\Property(property="order_index", type="integer", example=0)
+     *                     )
+     *                 )
      *             )
      *         )
      *     ),
@@ -114,9 +101,49 @@ class ReportController extends Controller
      */
     public function myReports(Request $request)
     {
-        $reports = Report::where('creator_id', $request->user()->id)->get();
+        $reports = Report::with('images')->where('creator_id', $request->user()->id)->get();
 
         return UserReportResource::collection($reports);   
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/reports/{id}/image",
+     *     summary="Get report image (Admin/Developer/Dispatcher only)",
+     *     tags={"Reports"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID of report",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="imageIndex",
+     *         in="path",
+     *         description="Index of the image (0-based, defaults to 0)",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=0)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Image file",
+     *         @OA\MediaType(
+     *             mediaType="image/jpeg"
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Image not found"),
+     *     @OA\Response(response=404, description="Report not found"),
+     *     @OA\Response(response=404, description="Image file not found"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=403, description="Forbidden")
+     * )
+     */
+    public function showImage(string $id, int $imageIndex = 0)
+    {
+        $report = $this->findReportOrFail($id);
+        return $this->getReportImage($report, $imageIndex);
     }
 
     /**
@@ -132,6 +159,13 @@ class ReportController extends Controller
      *         required=true,
      *         @OA\Schema(type="integer")
      *     ),
+     *     @OA\Parameter(
+     *         name="imageIndex",
+     *         in="path",
+     *         description="Index of the image (0-based, defaults to 0)",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=0)
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Image file",
@@ -139,38 +173,52 @@ class ReportController extends Controller
      *             mediaType="image/jpeg"
      *         )
      *     ),
-     *     @OA\Response(response=404, description="Image not found or report not owned by user"),
+     *     @OA\Response(response=404, description="Image not found"),
+     *     @OA\Response(response=404, description="Report not found"),
+     *     @OA\Response(response=404, description="Image file not found")
+     *     @OA\Response(response=403, description="Forbidden - Report not owned by user"),
      *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
-    public function showMyImage(Request $request, string $id)
+    public function showMyImage(Request $request, string $id, int $imageIndex = 0)
     {
-        // Find report and ensure it belongs to the authenticated user
-        $report = Report::where('id', $id)->first();
+        $report = $this->findReportOrFail($id);
 
         if ($report->creator_id !== $request->user()->id) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
-        return $this->getReportImage($report);
+        return $this->getReportImage($report, $imageIndex);
     }
 
-    private function getReportImage(Report $report)
+    private function findReportOrFail(string $id)
     {
-        if (!$report->image_path) {
+        $report = Report::with('images')->find($id);
+        
+        if (!$report) {
+            abort(response()->json(['message' => 'Report not found'], 404));
+        }
+        
+        return $report;
+    }
+
+    private function getReportImage(Report $report, int $imageIndex = 0)
+    {
+        $images = $report->images;
+        
+        if ($images->isEmpty() || !isset($images[$imageIndex])) {
             return response()->json(['message' => 'Image not found'], 404);
         }
 
-        $filePath = storage_path('app/private/reports/' . $report->image_path);
+        $reportImage = $images[$imageIndex];
+        $filePath = storage_path('app/private/reports/' . $reportImage->filename);
         
         if (!file_exists($filePath)) {
             return response()->json(['message' => 'Image file not found'], 404);
         }
 
-        $mimeType = mime_content_type($filePath);
-
         return response()->file($filePath, [
-            'Content-Type' => $mimeType,
+            'Content-Type' => $reportImage->type,
             'Cache-Control' => 'public, max-age=3600', // Cache for 1 hour
         ]);
     }
@@ -178,21 +226,25 @@ class ReportController extends Controller
     /**
      * @OA\Post(
      *     path="/api/reports",
-     *     summary="Create new report  (All authenticated users)",
+     *     summary="Create new report (All authenticated users)",
+     *     description="Creates a new problem report with optional image attachments. For testing file uploads, use Postman instead of Swagger UI. In Postman: use form-data, add 'images[]' as key (select 'File' type), and attach multiple files with the same key name.",
+     *     tags={"Reports"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\MediaType(
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
-     *                 @OA\Property(property="subsystem", type="string", example="ProblemReport"),
-     *                 @OA\Property(property="text", type="string", example="Something is broken"),
-     *                 @OA\Property(property="status", type="string", enum={"nyitott", "lezárt"}, example="nyitott"),
+     *                 required={"subsystem", "text", "status"},
+     *                 @OA\Property(property="subsystem", type="string", example="ProblemReport", description="The subsystem where the problem occurred"),
+     *                 @OA\Property(property="text", type="string", example="Something is broken", description="Description of the problem", maxLength=1000),
+     *                 @OA\Property(property="status", type="string", enum={"nyitott", "lezárt", "folyamatban"}, example="nyitott", description="Status of the report"),
      *                 @OA\Property(
-     *                     property="image", 
-     *                     type="string", 
-     *                     format="binary", 
-     *                     description="Image file (only JPG and PNG allowed, max 2MB)"
+     *                     property="images[]",
+     *                     type="array",
+     *                     description="Array of image files (Use Postman: form-data with key 'images[]', select File type, max 5 files, JPG/PNG, max 2MB each)",
+     *                     @OA\Items(type="string", format="binary"),
+     *                     maxItems=5
      *                 )
      *             )
      *         )
@@ -200,7 +252,29 @@ class ReportController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="Report created successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Report")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="subsystem", type="string", example="ProblemReport"),
+     *             @OA\Property(property="text", type="string", example="Something is broken"),
+     *             @OA\Property(property="status", type="string", example="nyitott"),
+     *             @OA\Property(property="date", type="string", format="date-time", example="2025-08-22T12:00:00Z"),
+     *             @OA\Property(property="creator_id", type="integer", example=3),
+     *             @OA\Property(property="created_at", type="string", format="date-time", example="2025-08-22T12:00:00Z"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time", example="2025-08-22T12:00:00Z"),
+     *             @OA\Property(
+     *                 property="images",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="report_id", type="integer", example=1),
+     *                     @OA\Property(property="filename", type="string", example="1692697800_abc123.jpg"),
+     *                     @OA\Property(property="type", type="string", example="jpg"),
+     *                     @OA\Property(property="order_index", type="integer", example=0),
+     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2025-08-22T12:00:00Z"),
+     *                     @OA\Property(property="updated_at", type="string", format="date-time", example="2025-08-22T12:00:00Z")
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(response=401, description="Unauthorized"),
      *     @OA\Response(
@@ -208,7 +282,32 @@ class ReportController extends Controller
      *         description="Validation error",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="The given data was invalid."),
-     *             @OA\Property(property="errors", type="object")
+     *             @OA\Property(
+     *                 property="errors", 
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="subsystem", 
+     *                     type="array", 
+     *                     @OA\Items(type="string", example="The subsystem field is required.")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="images", 
+     *                     type="array", 
+     *                     @OA\Items(type="string", example="Images must be provided as an array.")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="images.0", 
+     *                     type="array", 
+     *                     @OA\Items(type="string", example="Each image size cannot exceed 2MB.")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error during report creation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", example="Failed to create report")
      *         )
      *     )
      * )
@@ -220,22 +319,62 @@ class ReportController extends Controller
         $validated['date'] = now();
         $validated['creator_id'] = $request->user()->id;
 
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
-            $extension = $image->getClientOriginalExtension();
-            $filename = time() . '_' . uniqid() . '.' . $extension;
+        // Remove images from validated data as it's not a database column
+        unset($validated['images']);
 
-            Storage::disk('local')->putFileAs('reports', $image, $filename);
+        DB::beginTransaction();
+        
+        try {
+            $report = Report::create($validated);
 
-            $validated['image_path'] = $filename; //eg "1723456789_64f2a1b3c4d5e.jpg"
-            $validated['image_type'] = $extension;
+            // Handle multiple image uploads
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $index => $image) {
+                    $extension = $image->getClientOriginalExtension();
+                    $filename = time() . '_' . uniqid() . '.' . $extension;
+                    $mimeType = $image->getClientMimeType();
+
+                    // Store the file
+                    Storage::disk('local')->putFileAs('reports', $image, $filename); 
+
+                    // Create the database record
+                    ReportImage::create([
+                        'report_id' => $report->id,
+                        'filename' => $filename,
+                        'type' => $mimeType,
+                        'order_index' => $index,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            
+            // Load the images relationship for the response
+            $report->load('images');
+            
+            return response()->json($report, 201);
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            // Log the actual error for debugging
+            Log::error('Failed to create report: ' . $e->getMessage(), [
+                'exception' => $e,
+                'user_id' => $request->user()->id,
+                'request_data' => $request->except(['images']), // Don't log file data
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+            
+            // Clean up any uploaded files on error
+            if (isset($filename)) {
+                Storage::disk('local')->delete('reports/' . $filename); 
+            }
+            
+            return response()->json([
+                'error' => 'Failed to create report',
+                'message' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
         }
-
-        // Remove image from validated data as it's not a database column
-        unset($validated['image']);
-
-        $report = Report::create($validated);
-        return response()->json($report, 201);
     }
 
     /**
@@ -249,7 +388,8 @@ class ReportController extends Controller
     /**
      * @OA\Put(
      *     path="/api/reports/{id}",
-     *     summary="Update the specified report (Admin/Developer only)",
+     *     summary="Update the specified report (Admin/Developer/Dispatcher only)",
+     *     tags={"Reports"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
@@ -269,11 +409,27 @@ class ReportController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Report updated successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Report")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="integer", example=1),
+     *             @OA\Property(property="subsystem", type="string", example="ProblemReport"),
+     *             @OA\Property(property="text", type="string", example="Updated problem description"),
+     *             @OA\Property(property="status", type="string", example="folyamatban"),
+     *             @OA\Property(property="date", type="string", format="date-time", example="2025-08-22T12:00:00Z"),
+     *             @OA\Property(property="creator_id", type="integer", example=3),
+     *             @OA\Property(property="created_at", type="string", format="date-time", example="2025-08-22T12:00:00Z"),
+     *             @OA\Property(property="updated_at", type="string", format="date-time", example="2025-08-22T12:05:00Z")
+     *         )
      *     ),
      *     @OA\Response(response=404, description="Report not found"),
      *     @OA\Response(response=401, description="Unauthorized"),
-     *     @OA\Response(response=403, description="Forbidden - Admin/Developer role required")
+     *     @OA\Response(response=403, description="Forbidden - Admin/Developer/Dispatcher role required"),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validation error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The given data was invalid.")
+     *         )
+     *     )
      * )
      */
     public function update(Request $request, string $id)
@@ -286,27 +442,68 @@ class ReportController extends Controller
     /**
      * @OA\Delete(
      *     path="/api/reports/{id}",
-     *     summary="Delete the specified report (Admin only)",
+     *     summary="Delete a specific report and its images",
+     *     tags={"Reports"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
-     *         description="ID of report to delete",
+     *         description="ID of the report to delete",
      *         required=true,
-     *         @OA\Schema(type="string")
+     *         @OA\Schema(type="integer")
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Number of deleted records",
-     *         @OA\JsonContent(type="integer")
+     *         description="Report deleted successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Report deleted successfully")
+     *         )
      *     ),
      *     @OA\Response(response=404, description="Report not found"),
      *     @OA\Response(response=401, description="Unauthorized"),
-     *     @OA\Response(response=403, description="Forbidden - Admin role required")
+     *     @OA\Response(response=403, description="Forbidden")
      * )
      */
     public function destroy(string $id)
     {
-        return Report::destroy($id);
+        $report = $this->findReportOrFail($id);
+        
+        DB::beginTransaction();
+        
+        try {
+            // Delete image files from storage
+            foreach ($report->images as $image) {
+                $filePath = 'reports/' . $image->filename;
+                if (Storage::disk('local')->exists($filePath)) {
+                    Storage::disk('local')->delete($filePath);
+                    Log::info('Deleted image file', ['file' => $filePath]);
+                } else {
+                    Log::warning('Image file not found for deletion', ['file' => $filePath]);
+                }
+            }
+            
+            // Delete the report (this will also delete related images due to foreign key cascade)
+            $report->delete();
+            
+            DB::commit();
+            
+            Log::info('Report deleted successfully', ['report_id' => $id]);
+            
+            return response()->json(['message' => 'Report deleted successfully'], 200);
+            
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            Log::error('Failed to delete report', [
+                'report_id' => $id,
+                'error' => $e->getMessage(),
+                'stack_trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'Failed to delete report',
+                'message' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
+        }
     }
 }

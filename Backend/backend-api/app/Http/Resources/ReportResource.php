@@ -18,8 +18,16 @@ class ReportResource extends JsonResource
             'id' => $this->id,
             'subsystem' => $this->subsystem,
             'text' => $this->text,
-            'image_path' => $this->image_path,
-            'image_type' => $this->image_type,
+            'images' => $this->images->map(function($image, $index) {
+                return [
+                    'id' => $image->id,
+                    'filename' => $image->filename,
+                    'type' => $image->type,
+                    'order_index' => $image->order_index,
+                    'url' => "/api/reports/{$this->id}/image/{$index}"
+                ];
+            }),
+            'image_count' => $this->images->count(),
             'date' => $this->date,
             'status' => $this->status,
             "email" => $this->creator->email,

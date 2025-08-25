@@ -28,8 +28,6 @@ class Report extends Model
     protected $fillable = [
         'subsystem',
         'text',
-        'image_path',
-        'image_type',
         'date',
         'status',
         'creator_id',
@@ -42,5 +40,10 @@ class Report extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ReportImage::class)->orderBy('order_index');
     }
 }
