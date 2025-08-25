@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   canDeleteReports,
   isLoggedIn,
@@ -6,16 +6,26 @@ import {
   canModifyReportStatus,
 } from "../utils/auth";
 
+export interface ReportImage {
+  id: number;
+  filename: string;
+  type: string;
+  order_index: number;
+  url: string;
+}
+
 export interface Report {
   id: number;
   subsystem: string;
   text: string;
-  imagePath: string | null;
-  imageType: string | null;
+  images: ReportImage[];
+  image_count: number;
   date: string;
   status: string;
   email: string;
   name?: string;
+  imagePath?: string | null;
+  imageType?: string | null;
 }
 
 interface ReportListProps {
@@ -54,6 +64,9 @@ function ReportList({
   const [imageLoading, setImageLoading] = useState<boolean>(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [detailModalImage, setDetailModalImage] = useState<string | null>(null);
+  const [detailModalImageIndex, setDetailModalImageIndex] = useState<number>(0);
+  const [detailModalImages, setDetailModalImages] = useState<string[]>([]);
+  const [fullSizeImageIndex, setFullSizeImageIndex] = useState<number>(0);
 
   const handleStatusChange = (report: Report, newStatus: string) => {
     if (onStatusChange) {
@@ -63,7 +76,7 @@ function ReportList({
     }
   };
 
-  const handleImageClick = async (reportId: number) => {
+  const handleImageClick = async (reportId: number, imageIndex: number = 0) => {
     setImageLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -75,9 +88,9 @@ function ReportList({
 
       let imageEndpoint;
       if (canViewAllReports()) {
-        imageEndpoint = `http://localhost:8000/api/reports/${reportId}/image`;
+        imageEndpoint = `http://localhost:8000/api/reports/${reportId}/image/${imageIndex}`;
       } else {
-        imageEndpoint = `http://localhost:8000/api/my-reports/${reportId}/image`;
+        imageEndpoint = `http://localhost:8000/api/my-reports/${reportId}/image/${imageIndex}`;
       }
 
       const response = await fetch(imageEndpoint, {
@@ -124,56 +137,161 @@ function ReportList({
       URL.revokeObjectURL(selectedImage);
     }
     setSelectedImage(null);
+    setFullSizeImageIndex(0);
   };
 
   const openDetailModal = async (report: Report) => {
     setSelectedReport(report);
+    setDetailModalImageIndex(0);
 
-    if (report.imagePath) {
+    if ((report.images && report.images.length > 0) || report.imagePath) {
       setImageLoading(true);
       try {
         const token = localStorage.getItem("token");
         if (!token) {
           setDetailModalImage(null);
+          setDetailModalImages([]);
           return;
         }
 
-        let imageEndpoint;
-        if (canViewAllReports()) {
-          imageEndpoint = `http://localhost:8000/api/reports/${report.id}/image`;
-        } else {
-          imageEndpoint = `http://localhost:8000/api/my-reports/${report.id}/image`;
+        const imageCount = report.images ? report.images.length : 1;
+        const loadedImages: string[] = [];
+
+        for (let i = 0; i < imageCount; i++) {
+          try {
+            let imageEndpoint;
+            if (canViewAllReports()) {
+              imageEndpoint = `http://localhost:8000/api/reports/${report.id}/image/${i}`;
+            } else {
+              imageEndpoint = `http://localhost:8000/api/my-reports/${report.id}/image/${i}`;
+            }
+
+            const response = await fetch(imageEndpoint, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            if (response.ok) {
+              const blob = await response.blob();
+              const imageUrl = URL.createObjectURL(blob);
+              loadedImages.push(imageUrl);
+            }
+          } catch (error) {
+            console.error(`Error loading image ${i}:`, error);
+          }
         }
 
-        const response = await fetch(imageEndpoint, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const blob = await response.blob();
-          const imageUrl = URL.createObjectURL(blob);
-          setDetailModalImage(imageUrl);
-        } else {
-          setDetailModalImage(null);
-        }
+        setDetailModalImages(loadedImages);
+        setDetailModalImage(loadedImages[0] || null);
       } catch (error) {
-        console.error("Error loading detail modal image:", error);
+        console.error("Error loading detail modal images:", error);
         setDetailModalImage(null);
+        setDetailModalImages([]);
       } finally {
         setImageLoading(false);
       }
+    } else {
+      setDetailModalImages([]);
+      setDetailModalImage(null);
     }
   };
-
   const closeDetailModal = () => {
     if (detailModalImage) {
       URL.revokeObjectURL(detailModalImage);
     }
+    detailModalImages.forEach((imageUrl) => {
+      URL.revokeObjectURL(imageUrl);
+    });
+
     setSelectedReport(null);
     setDetailModalImage(null);
+    setDetailModalImages([]);
+    setDetailModalImageIndex(0);
   };
+
+  const navigateDetailModalImage = (direction: "prev" | "next") => {
+    if (detailModalImages.length <= 1) return;
+
+    let newIndex;
+    if (direction === "prev") {
+      newIndex =
+        detailModalImageIndex > 0
+          ? detailModalImageIndex - 1
+          : detailModalImages.length - 1;
+    } else {
+      newIndex =
+        detailModalImageIndex < detailModalImages.length - 1
+          ? detailModalImageIndex + 1
+          : 0;
+    }
+
+    setDetailModalImageIndex(newIndex);
+    setDetailModalImage(detailModalImages[newIndex]);
+  };
+
+  const navigateFullSizeImage = (direction: "prev" | "next") => {
+    if (detailModalImages.length <= 1) return;
+
+    let newIndex;
+    if (direction === "prev") {
+      newIndex =
+        fullSizeImageIndex > 0
+          ? fullSizeImageIndex - 1
+          : detailModalImages.length - 1;
+    } else {
+      newIndex =
+        fullSizeImageIndex < detailModalImages.length - 1
+          ? fullSizeImageIndex + 1
+          : 0;
+    }
+
+    setFullSizeImageIndex(newIndex);
+    setSelectedImage(detailModalImages[newIndex]);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (selectedImage && detailModalImages.length > 1) {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          navigateFullSizeImage("prev");
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          navigateFullSizeImage("next");
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          closeModal();
+        }
+        return;
+      }
+
+      // navigation
+      if (selectedReport && detailModalImages.length > 1) {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          navigateDetailModalImage("prev");
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          navigateDetailModalImage("next");
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          closeDetailModal();
+        }
+      }
+    };
+
+    if (selectedReport || selectedImage) {
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [
+    selectedReport,
+    selectedImage,
+    detailModalImages.length,
+    detailModalImageIndex,
+    fullSizeImageIndex,
+  ]);
 
   return (
     <>
@@ -212,24 +330,58 @@ function ReportList({
                 </span>
               </div>
 
-              {/* Middle - Text and Image */}
+              {/* Middle - Text and Images */}
               <div className="flex flex-col gap-2 text-sm text-gray-900 w-2/4">
                 <div className="truncate">{report.text}</div>
-                {report.imagePath && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleImageClick(report.id);
-                      }}
-                      className="text-blue-500 hover:text-blue-700 text-xs underline text-left flex items-center gap-1"
-                      disabled={imageLoading}
-                    >
-                      📷 {imageLoading ? "Betöltés..." : "Kép megtekintése"}
-                    </button>
-                    <span className="text-xs text-gray-400">
-                      ({report.imageType?.toUpperCase()})
-                    </span>
+
+                {((report.images && report.images.length > 0) ||
+                  report.imagePath) && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {report.images && report.images.length > 0 ? (
+                      <>
+                        <span className="text-xs text-gray-600">
+                          📷 {report.images.length} kép:
+                        </span>
+                        {report.images.slice(0, 3).map((image, index) => (
+                          <button
+                            key={image.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleImageClick(report.id, index);
+                            }}
+                            className="text-blue-500 hover:text-blue-700 text-xs underline px-2 py-1 bg-blue-50 rounded"
+                            disabled={imageLoading}
+                            title={`${image.type?.toUpperCase()} - ${image.filename}`}
+                          >
+                            {index + 1}
+                          </button>
+                        ))}
+                        {report.images.length > 3 && (
+                          <span className="text-xs text-gray-500">
+                            +{report.images.length - 3} további
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      report.imagePath && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleImageClick(report.id, 0);
+                            }}
+                            className="text-blue-500 hover:text-blue-700 text-xs underline text-left flex items-center gap-1"
+                            disabled={imageLoading}
+                          >
+                            📷{" "}
+                            {imageLoading ? "Betöltés..." : "Kép megtekintése"}
+                          </button>
+                          <span className="text-xs text-gray-400">
+                            ({report.imageType?.toUpperCase()})
+                          </span>
+                        </>
+                      )
+                    )}
                   </div>
                 )}
               </div>
@@ -291,14 +443,13 @@ function ReportList({
       {/* Detailed Report Modal */}
       {selectedReport && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4"
           onClick={closeDetailModal}
         >
           <div
             className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header */}
             <div className="flex justify-between items-center p-4 border-b bg-gradient-to-r from-[#236A75] to-[#0E3F47]">
               <div className="text-white">
                 <h2 className="text-2xl font-bold">Bejelentés részletei</h2>
@@ -313,12 +464,9 @@ function ReportList({
               </button>
             </div>
 
-            {/* Content */}
             <div className="p-6 max-h-[80vh] overflow-auto">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Report Details - left */}
                 <div className="space-y-6">
-                  {/* Basic Info */}
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <span className="bg-[#236A75] text-white p-2 rounded-full mr-3">
@@ -376,7 +524,6 @@ function ReportList({
                     </div>
                   </div>
 
-                  {/* Description */}
                   <div className="bg-white border border-gray-200 p-4 rounded-lg">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                       <span className="bg-[#236A75] text-white p-2 rounded-full mr-3">
@@ -392,33 +539,119 @@ function ReportList({
                   </div>
                 </div>
 
-                {/* Image */}
+                {/* Images Section */}
                 <div className="space-y-6">
-                  {selectedReport.imagePath ? (
+                  {(selectedReport.images &&
+                    selectedReport.images.length > 0) ||
+                  selectedReport.imagePath ? (
                     <div className="bg-white border border-gray-200 p-4 rounded-lg">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                        <span className="bg-[#236A75] text-white p-2 rounded-full mr-3">
-                          📷
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center justify-between">
+                        <span className="flex items-center">
+                          <span className="bg-[#236A75] text-white p-2 rounded-full mr-3">
+                            📷
+                          </span>
+                          Mellékelt képek
+                          {selectedReport.images &&
+                            selectedReport.images.length > 1 && (
+                              <span className="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
+                                {detailModalImageIndex + 1} /{" "}
+                                {selectedReport.images.length}
+                              </span>
+                            )}
                         </span>
-                        Mellékelt kép
+                        {detailModalImages.length > 1 && (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => navigateDetailModalImage("prev")}
+                              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 hover:text-gray-800"
+                              title="Előző kép"
+                            >
+                              ◀
+                            </button>
+                            <button
+                              onClick={() => navigateDetailModalImage("next")}
+                              className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 hover:text-gray-800"
+                              title="Következő kép"
+                            >
+                              ▶
+                            </button>
+                          </div>
+                        )}
                       </h3>
                       <div className="bg-gray-50 p-4 rounded-lg">
                         {imageLoading ? (
                           <div className="flex items-center justify-center h-64">
                             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#236A75]"></div>
                             <span className="ml-3 text-gray-500">
-                              Kép betöltése...
+                              Képek betöltése...
                             </span>
                           </div>
                         ) : detailModalImage ? (
-                          <div className="relative">
+                          <div className="relative group">
+                            {detailModalImages.length > 1 && (
+                              <>
+                                {/* Left Arrow */}
+                                <button
+                                  onClick={() =>
+                                    navigateDetailModalImage("prev")
+                                  }
+                                  className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+                                  title="Előző kép"
+                                >
+                                  <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15 19l-7-7 7-7"
+                                    />
+                                  </svg>
+                                </button>
+
+                                {/* Right Arrow */}
+                                <button
+                                  onClick={() =>
+                                    navigateDetailModalImage("next")
+                                  }
+                                  className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-3 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+                                  title="Következő kép"
+                                >
+                                  <svg
+                                    className="w-6 h-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </button>
+
+                                {/* Image Counter Overlay */}
+                                <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-3 py-1 rounded-full text-sm opacity-0 group-hover:opacity-100 transition-all">
+                                  {detailModalImageIndex + 1} /{" "}
+                                  {detailModalImages.length}
+                                </div>
+                              </>
+                            )}
+
                             <img
                               src={detailModalImage}
-                              alt="Report attachment"
+                              alt={`Report attachment ${detailModalImageIndex + 1}`}
                               className="max-w-full h-auto object-contain mx-auto rounded-lg shadow-md cursor-pointer hover:opacity-80 transition-opacity"
                               style={{ maxHeight: "400px" }}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                setFullSizeImageIndex(detailModalImageIndex);
                                 setSelectedImage(detailModalImage);
                               }}
                               onError={(e) => {
@@ -432,14 +665,52 @@ function ReportList({
                               }}
                             />
                             <div className="mt-2 text-xs text-gray-500 text-center">
-                              Fájltípus:{" "}
-                              {selectedReport.imageType?.toUpperCase()}
+                              {selectedReport.images &&
+                              selectedReport.images.length > 0 ? (
+                                <>
+                                  Fájltípus:{" "}
+                                  {selectedReport.images[
+                                    detailModalImageIndex
+                                  ]?.type?.toUpperCase()}
+                                  <br />
+                                  Fájlnév:{" "}
+                                  {
+                                    selectedReport.images[detailModalImageIndex]
+                                      ?.filename
+                                  }
+                                </>
+                              ) : (
+                                `Fájltípus: ${selectedReport.imageType?.toUpperCase()}`
+                              )}
                             </div>
+
+                            {/* Image Thumbnail Navigation */}
+                            {detailModalImages.length > 1 && (
+                              <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                                {detailModalImages.map((_, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => {
+                                      setDetailModalImageIndex(index);
+                                      setDetailModalImage(
+                                        detailModalImages[index],
+                                      );
+                                    }}
+                                    className={`w-4 h-4 rounded-full transition-all ${
+                                      index === detailModalImageIndex
+                                        ? "bg-[#236A75] scale-125 shadow-md"
+                                        : "bg-gray-300 hover:bg-gray-400 hover:scale-110"
+                                    }`}
+                                    title={`Kép ${index + 1}${selectedReport.images?.[index] ? ` - ${selectedReport.images[index].filename}` : ""}`}
+                                  />
+                                ))}
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="text-center p-8 text-gray-500">
-                            <span className="text-4xl mb-2 block">🚫</span>A kép
-                            nem tölthető be
+                            <span className="text-4xl mb-2 block">🚫</span>A
+                            képek nem tölthetők be
                           </div>
                         )}
                       </div>
@@ -511,7 +782,7 @@ function ReportList({
       {/* Image Modal */}
       {(selectedImage || imageLoading) && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={!imageLoading ? closeModal : undefined}
         >
           <div
@@ -521,36 +792,176 @@ function ReportList({
             <div className="flex justify-between items-center p-4 border-b bg-gray-50">
               <h3 className="text-lg font-semibold text-gray-900">
                 {imageLoading ? "Kép betöltése..." : "Feltöltött kép"}
+                {detailModalImages.length > 1 && selectedImage && (
+                  <span className="ml-2 text-sm font-normal text-gray-600">
+                    ({fullSizeImageIndex + 1} / {detailModalImages.length})
+                  </span>
+                )}
               </h3>
-              <button
-                onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-                aria-label="Bezárás"
-                disabled={imageLoading}
-              >
-                ×
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Navigation arrows in header */}
+                {detailModalImages.length > 1 && selectedImage && (
+                  <>
+                    <button
+                      onClick={() => navigateFullSizeImage("prev")}
+                      className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-colors"
+                      title="Előző kép (←)"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => navigateFullSizeImage("next")}
+                      className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-full transition-colors"
+                      title="Következő kép (→)"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
+                      </svg>
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={closeModal}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
+                  aria-label="Bezárás"
+                  disabled={imageLoading}
+                >
+                  ×
+                </button>
+              </div>
             </div>
-            <div className="p-4 max-h-[80vh] overflow-auto">
+            <div className="p-4 max-h-[80vh] overflow-auto relative group">
               {imageLoading ? (
                 <div className="flex items-center justify-center h-64">
                   <div className="text-gray-500">Kép betöltése...</div>
                 </div>
               ) : selectedImage ? (
-                <img
-                  src={selectedImage}
-                  alt="Report attachment"
-                  className="max-w-full h-auto object-contain mx-auto block"
-                  style={{ maxHeight: "70vh" }}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = "none";
-                    const errorDiv = document.createElement("div");
-                    errorDiv.className = "text-red-500 text-center p-8";
-                    errorDiv.textContent = "A kép nem tölthető be.";
-                    target.parentNode?.appendChild(errorDiv);
-                  }}
-                />
+                <div className="relative">
+                  {detailModalImages.length > 1 && (
+                    <>
+                      {/* Left Arrow */}
+                      <button
+                        onClick={() => navigateFullSizeImage("prev")}
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-4 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+                        title="Előző kép (←)"
+                      >
+                        <svg
+                          className="w-8 h-8"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 19l-7-7 7-7"
+                          />
+                        </svg>
+                      </button>
+
+                      {/* Right Arrow */}
+                      <button
+                        onClick={() => navigateFullSizeImage("next")}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-black bg-opacity-50 hover:bg-opacity-75 text-white p-4 rounded-full transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+                        title="Következő kép (→)"
+                      >
+                        <svg
+                          className="w-8 h-8"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+
+                  <img
+                    src={selectedImage}
+                    alt="Report attachment"
+                    className="max-w-full h-auto object-contain mx-auto block"
+                    style={{ maxHeight: "70vh" }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      const errorDiv = document.createElement("div");
+                      errorDiv.className = "text-red-500 text-center p-8";
+                      errorDiv.textContent = "A kép nem tölthető be.";
+                      target.parentNode?.appendChild(errorDiv);
+                    }}
+                  />
+
+                  {/* Image data and navigation dots */}
+                  {selectedReport && (
+                    <div className="mt-4 text-center">
+                      {selectedReport.images &&
+                        selectedReport.images.length > 0 && (
+                          <div className="text-sm text-gray-600 mb-2">
+                            {
+                              selectedReport.images[fullSizeImageIndex]
+                                ?.filename
+                            }
+                            <br />
+                            <span className="text-xs text-gray-500">
+                              {selectedReport.images[
+                                fullSizeImageIndex
+                              ]?.type?.toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+
+                      {/* Thumbnail navigation dots */}
+                      {detailModalImages.length > 1 && (
+                        <div className="flex justify-center gap-2">
+                          {detailModalImages.map((_, index) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                setFullSizeImageIndex(index);
+                                setSelectedImage(detailModalImages[index]);
+                              }}
+                              className={`w-3 h-3 rounded-full transition-all ${
+                                index === fullSizeImageIndex
+                                  ? "bg-[#236A75] scale-125 shadow-md"
+                                  : "bg-gray-400 hover:bg-gray-500 hover:scale-110"
+                              }`}
+                              title={`Kép ${index + 1}`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               ) : null}
             </div>
           </div>

@@ -43,12 +43,15 @@ function App() {
           id: r.id,
           subsystem: r.subsystem,
           text: r.text,
-          imagePath: r.image_path,
-          imageType: r.image_type,
+          images: r.images || [],
+          image_count: r.image_count || 0,
           date: r.date,
           status: r.status,
-          creatorId: r.creator_id,
+          email: r.email || "",
           name: r.name ?? "Ismeretlen felhasználó",
+          // Legacy fields for backward compatibility
+          imagePath: r.images && r.images.length > 0 ? r.images[0].url : null,
+          imageType: r.images && r.images.length > 0 ? r.images[0].type : null,
         }));
 
         setReports(mappedReports);
@@ -149,16 +152,25 @@ function App() {
 
   const createReport = async (reportData: ReportFormData) => {
     try {
-      if (reportData.image && reportData.image.size > 2 * 1024 * 1024) {
-        alert("A kép mérete nem lehet nagyobb 2MB-nál!");
-        return;
-      }
-
-      if (reportData.image) {
-        const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-        if (!allowedTypes.includes(reportData.image.type)) {
-          alert("Csak JPG és PNG fájlok engedélyezettek!");
+      if (reportData.images && reportData.images.length > 0) {
+        if (reportData.images.length > 5) {
+          alert("Maximum 5 kép tölthető fel!");
           return;
+        }
+
+        for (const image of reportData.images) {
+          if (image.size > 2 * 1024 * 1024) {
+            alert(`A kép "${image.name}" mérete nem lehet nagyobb 2MB-nál!`);
+            return;
+          }
+
+          const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+          if (!allowedTypes.includes(image.type)) {
+            alert(
+              `A fájl "${image.name}" nem támogatott! Csak JPG és PNG fájlok engedélyezettek!`,
+            );
+            return;
+          }
         }
       }
 
@@ -167,8 +179,10 @@ function App() {
       formData.append("subsystem", reportData.subsystem);
       formData.append("status", "nyitott");
 
-      if (reportData.image) {
-        formData.append("image", reportData.image);
+      if (reportData.images && reportData.images.length > 0) {
+        reportData.images.forEach((image) => {
+          formData.append("images[]", image);
+        });
       }
 
       await api.post("/reports", formData, {
@@ -195,7 +209,9 @@ function App() {
           "Nincs jogosultságod bejelentés létrehozásához! Kérjük, jelentkezz be újra.",
         );
       } else if (response?.status === 413) {
-        alert("A feltöltött fájl túl nagy! Kérjük, válassz kisebb képet.");
+        alert(
+          "A feltöltött fájlok túl nagyok! Kérjük, válassz kisebb képeket.",
+        );
       } else if (response?.status === 415) {
         alert(
           "Nem támogatott fájlformátum! Csak JPG és PNG képeket fogadunk el.",
